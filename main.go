@@ -20,9 +20,14 @@ Usage:
 */
 package main
 
-import "github.com/terraform/ec/cmd"
+import (
+	"github.com/terraform/ec/cmd"
+)
+
+const VERSION string = "0.1.10"
 
 func main() {
+	cmd.VERSION = VERSION
 	cmd.Execute()
 
 }
