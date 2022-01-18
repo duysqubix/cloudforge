@@ -36,6 +36,7 @@ func init() {
 
 	// Set the backends to be used.
 	logging.SetBackend(backend1Leveled, backend1Formatter)
+
 }
 
 func removeDuplicateStr(strSlice []string) []string {
