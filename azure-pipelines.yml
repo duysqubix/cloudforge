@@ -1,0 +1,35 @@
+trigger:
+  branches:
+    include:
+      - master
+pr:
+  branches:
+    include:
+      - '*'
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+  - task: CopyFiles@2
+    displayName: "Copy Terraform files to artifacts"
+    inputs:
+      SourceFolder: .
+      TargetFolder: '$(build.artifactstagingdirectory)/terraform'
+
+  - task: GoTool@0
+    inputs:
+      version : '1.17.3'
+
+  - task: Go@0
+    inputs:
+      command: "build"
+      arguments: "-o ../einfra"
+      workingDirectory: "$(build.artifactstagingdirectory)/terraform/scripts"
+      
+  - task: PublishBuildArtifacts@1
+    condition: eq(variables['Build.SourceBranch'], 'refs/heads/master') # only publish artifacts if this is built from the main branch
+    displayName: "Publish Terraform files"
+    inputs:
+      PathtoPublish: '$(build.artifactstagingdirectory)'
+      ArtifactName: 'core'
+      
