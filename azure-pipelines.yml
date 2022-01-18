@@ -32,8 +32,8 @@ steps:
 
   - task: PublishBuildArtifacts@1
     condition: eq(variables['Build.SourceBranch'], 'refs/heads/master') # only publish artifacts if this is built from the main branch
-    displayName: "Publish Terraform files"
+    displayName: "Publish binary"
     inputs:
-      PathtoPublish: '$(build.artifactstagingdirectory)'
+      PathtoPublish: '$(build.artifactstagingdirectory)/ecdeploy/bin'
       ArtifactName: 'core'
       
