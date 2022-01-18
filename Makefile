@@ -12,6 +12,6 @@ clean:
 	go clean 
 	rm ec
 	
-push:
+push: version
 	git tag $(VERSION)
 	git push origin master --tags

@@ -14,17 +14,17 @@ steps:
     displayName: "Copy Terraform files to artifacts"
     inputs:
       SourceFolder: .
-      TargetFolder: '$(build.artifactstagingdirectory)/terraform'
+      TargetFolder: '$(build.artifactstagingdirectory)/ecdeploy'
 
   - task: GoTool@0
     inputs:
       version : '1.17.3'
 
-  - task: Go@0
+  - task: Bash@3
     inputs:
-      command: "build"
-      arguments: "-o ../einfra"
-      workingDirectory: "$(build.artifactstagingdirectory)/terraform/scripts"
+      workingDirectory: '$(build.artifactstagingdirectory)/ecdeploy'
+      script: make version
+    
       
   - task: PublishBuildArtifacts@1
     condition: eq(variables['Build.SourceBranch'], 'refs/heads/master') # only publish artifacts if this is built from the main branch
