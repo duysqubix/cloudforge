@@ -25,11 +25,11 @@ steps:
     inputs:
       targetType: 'inline'
       workingDirectory: '$(build.artifactstagingdirectory)/ecdeploy/'
-      failOnStderr: true
       script: |
-        make version
-    
-      
+        make version && \
+        mkdir -p $(build.artifactstagingdirectory)/ecdeploy/bin
+        mv ec $(build.artifactstagingdirectory)/ecdeploy/bin
+
   - task: PublishBuildArtifacts@1
     condition: eq(variables['Build.SourceBranch'], 'refs/heads/master') # only publish artifacts if this is built from the main branch
     displayName: "Publish Terraform files"
