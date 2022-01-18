@@ -4,6 +4,7 @@ VERSION:=$(shell /bin/cat VERSION)
 build:
 	echo "Building application"
 	go build -ldflags="-X 'main.VERSION=$(VERSION)'" -o ec
+	git add ec && git commit -m 'updating binary to $(VERSION)'
 
 version: build 
 	./ec version

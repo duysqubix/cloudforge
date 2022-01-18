@@ -13,7 +13,7 @@ Installation w/ Make:
 	make all
 
 Usage:
-	./einfra [validate/deploy] [dev, int, uat, prod]
+	ec [validate/deploy] [dev, int, uat, prod]
 
 
 
