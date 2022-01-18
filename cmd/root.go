@@ -11,7 +11,7 @@ import (
 	"github.com/op/go-logging"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
-	"github.com/terraform/ec/utils"
+	"github.com/vorys-econtrol/ec/utils"
 )
 
 var logger = logging.MustGetLogger("cmd")

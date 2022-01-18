@@ -21,7 +21,7 @@ Usage:
 package main
 
 import (
-	"github.com/terraform/ec/cmd"
+	"github.com/vorys-econtrol/ec/cmd"
 )
 
 const VERSION string = "0.1.10"
@@ -29,5 +29,4 @@ const VERSION string = "0.1.10"
 func main() {
 	cmd.VERSION = VERSION
 	cmd.Execute()
-
 }

@@ -3,7 +3,7 @@ VERSION:=$(shell /bin/cat VERSION)
 
 build:
 	echo "Building application"
-	go build -v
+	go build -v -o ec
 
 clean:
 	go clean 
@@ -11,4 +11,4 @@ clean:
 	
 push:
 	git tag $(VERSION)
-	git push origin master
+	git push origin master --tags

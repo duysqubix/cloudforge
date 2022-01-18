@@ -1,4 +1,4 @@
-module github.com/terraform/ec
+module github.com/vorys-econtrol/ec
 
 go 1.17
 
