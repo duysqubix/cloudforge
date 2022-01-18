@@ -11,7 +11,7 @@ pool:
 
 steps:
   - task: CopyFiles@2
-    displayName: "Copy Terraform files to artifacts"
+    displayName: "Copy EC source code"
     inputs:
       SourceFolder: .
       TargetFolder: '$(build.artifactstagingdirectory)/ecdeploy'
