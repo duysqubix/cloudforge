@@ -21,17 +21,12 @@ Usage:
 package main
 
 import (
-	"log"
-
 	"github.com/vorys-econtrol/ec/cmd"
 )
 
-var VERSION string
+var VERSION string = "0.2.0"
 
 func main() {
-	if VERSION == "" {
-		log.Fatal("VERSION IS NOT SET")
-	}
 	cmd.VERSION = VERSION
 	cmd.Execute()
 }
