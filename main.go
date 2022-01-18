@@ -21,12 +21,20 @@ Usage:
 package main
 
 import (
+	"github.com/op/go-logging"
+
 	"github.com/vorys-econtrol/ec/cmd"
 )
 
-var VERSION string = "0.2.0"
+var logger = logging.MustGetLogger("main")
+
+var VERSION string = ""
 
 func main() {
+
+	if VERSION == "" {
+		logger.Warning("VERSION IS NOT SET")
+	}
 	cmd.VERSION = VERSION
 	cmd.Execute()
 }
