@@ -14,7 +14,7 @@ var validateCmd = &cobra.Command{
 	Short: "Validate different environments",
 	Long: `
 	Usage:
-		einfra validate [dev, int, uat, prod]
+		ec validate [dev, int, uat, prod]
 	`,
 }
 

@@ -3,7 +3,10 @@ VERSION:=$(shell /bin/cat VERSION)
 
 build:
 	echo "Building application"
-	go build -v -o ec
+	go build -ldflags="-X 'main.VERSION=$(VERSION)'" -o ec
+
+version: build 
+	./ec version
 
 clean:
 	go clean 

@@ -19,14 +19,14 @@ var VERSION string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "terraform_script",
+	Use:   "ec",
 	Short: "Easily validates and deploys terraform files to appropriate environment",
 	Long: `Used to validate and potentially deploy terraform files into Azure and the respective 
 	environment.
 	
 	Usage:
-		einfra validate [dev, int, uat, prod]
-		einfra deploy [dev, int, uat, prod]
+		ec validate [dev, int, uat, prod]
+		ec deploy [dev, int, uat, prod]
 	`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:

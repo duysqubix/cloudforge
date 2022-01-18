@@ -14,7 +14,7 @@ var deployCmd = &cobra.Command{
 	Short: "Deploy to different environments",
 	Long: `
 		Usage:
-			einfra deploy [dev, int, uat, prod]
+			ec deploy [dev, int, uat, prod]
 	.`,
 }
 
