@@ -21,9 +21,13 @@ steps:
       version : '1.17.3'
 
   - task: Bash@3
+    displayName: "Compile source code"
     inputs:
-      workingDirectory: '$(build.artifactstagingdirectory)/ecdeploy'
-      script: make version
+      targetType: 'inline'
+      workingDirectory: '$(build.artifactstagingdirectory)/ecdeploy/'
+      failOnStderr: true
+      script: |
+        make version
     
       
   - task: PublishBuildArtifacts@1
