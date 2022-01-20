@@ -1,5 +1,9 @@
 /*
-Copyright © 2022 NAME HERE <EMAIL ADDRESS>
+Copyright © 2022 Vorys <dhuys@vorys.com>
+
+Cobra Command Line Architecture
+
+Holds logic to structure proper command line arguments and sub-commands
 
 */
 package cmd
@@ -15,6 +19,8 @@ import (
 )
 
 var logger = logging.MustGetLogger("cmd")
+
+// VERSION variable is set within Main function
 var VERSION string
 
 // rootCmd represents the base command when called without any subcommands
@@ -28,9 +34,6 @@ var rootCmd = &cobra.Command{
 		ec validate [dev, int, uat, prod]
 		ec deploy [dev, int, uat, prod]
 	`,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	// Run: func(cmd *cobra.Command, args []string) { },
 }
 
 var cfgFile string
@@ -45,17 +48,16 @@ func Execute() {
 }
 
 func init() {
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
-	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.terraform_script.yaml)")
-
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-	// rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// toggles whether or not to refresh state file and provide an updated
+	// plan for terraform
 	rootCmd.PersistentFlags().BoolP("no-plan", "n", false, "Performs a plan action during validation")
 }
 
+// Executes the following:
+// 1. Determines targeted environment
+// 2. Populates ConfigFile object either through a file or environment variables
+// 3. Reads terraform files, replaces tokens with secrets, and writes them to
+// temp dir
 func baseTerraformSetup(env string) *utils.AzureTerraform {
 
 	switch env {
@@ -99,10 +101,12 @@ func baseTerraformSetup(env string) *utils.AzureTerraform {
 	tmp_dir := pathlib.NewPathAfero(utils.TMPDIR_PATH, afero.NewOsFs())
 
 	tokenizer.DumpTo(tmp_dir)
-	tf := utils.NewTerraformHandler(config)
+	tf := utils.NewAzureTerraformHandler(config)
 	return tf
 }
 
+// Performs validation of terraform with either a plan or no-plan
+// depending on supplied flag
 func validateTerraform(tf *utils.AzureTerraform, cmd *cobra.Command) {
 	resp, errors := tf.Validate()
 	if !resp {
@@ -119,6 +123,7 @@ func validateTerraform(tf *utils.AzureTerraform, cmd *cobra.Command) {
 	}
 }
 
+// Performs an Apply action with -auto-apply
 func deployTerraform(tf *utils.AzureTerraform) {
 	if err := tf.Deploy(); err != nil {
 		logger.Fatal(err)

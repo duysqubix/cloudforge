@@ -10,19 +10,21 @@ import (
 	"github.com/op/go-logging"
 )
 
+// Retrieves key vault secrets from Azure Key Vault service
 func GetKeyVaultSecrets(vaultName *string, auth *AzureServicePrincipal) *map[string]string {
 	logger.Info("Initializing Azure KeyVault Client")
 	keyVaultClient := getKeyVaultClient(&auth.clientId, &auth.clientSecret, &auth.tenantId)
 
 	vaultUri := fmt.Sprintf("https://%s.vault.azure.net", *vaultName)
 
+	// int32 type is expected in the underlying api call to retrieve secrets
 	var maxResults int32 = 25
 
 	logger.Infof("Obtaining Secrets")
 	keys, err := keyVaultClient.GetSecrets(context.Background(), vaultUri, &maxResults)
 
 	if err != nil {
-		panic(err)
+		logger.Fatal(err)
 	}
 
 	secrets := make(map[string]string)
@@ -30,6 +32,8 @@ func GetKeyVaultSecrets(vaultName *string, auth *AzureServicePrincipal) *map[str
 	for {
 		values := keys.Values()
 
+		// if values are nil the page is empty
+		// and we have retrieved all secrets
 		if values == nil {
 			break
 		}
@@ -52,10 +56,15 @@ func GetKeyVaultSecrets(vaultName *string, auth *AzureServicePrincipal) *map[str
 }
 
 func getSecretNameFromId(secretId *string) string {
+	// sanity check
+	if secretId == nil {
+		logger.Fatalf("ptr to Secretname is Nil")
+	}
 	split := strings.Split(strings.TrimSpace(*secretId), "/")
 	return split[len(split)-1]
 }
 
+// generate base key vault client
 func getKeyVaultClient(clientId, clientSecret, tenantId *string) (client keyvault.BaseClient) {
 	keyvaultClient := keyvault.New()
 	clientCredentialConfig := auth.NewClientCredentialsConfig(*clientId, *clientSecret, *tenantId)
@@ -72,6 +81,7 @@ func getKeyVaultClient(clientId, clientSecret, tenantId *string) (client keyvaul
 	return keyvaultClient
 }
 
+// retrieve secret
 func getSecret(vaultUri *string, keyvaultClient keyvault.BaseClient, secretName *string) string {
 
 	res, err := keyvaultClient.GetSecret(context.Background(), *vaultUri, *secretName, "")
