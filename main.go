@@ -3,17 +3,17 @@ Copyright © 2022 Duan Uys <dhuys@vorys.com>
 
 eControl Infrastructure Manager
 
-Software that allows to validate and deploy to eControl Digitals' multiple environments.
-
+A set of useful tools that manages eControl Digital environment.
 
 ** Executable must be located in root of project.
-
 
 Installation w/ Make:
 	make all
 
 Usage:
-	ec [validate/deploy] [dev, int, uat, prod]
+	Global Flags: --no-plan // do not generate a plan
+	ec validate [dev, int, uat, prod] // validates tf files and generates plan
+	ec deploy    [dev, int, uat, prod] // deploys tf files to appropriate env
 
 
 
@@ -32,6 +32,7 @@ var VERSION string = ""
 
 func main() {
 
+	// VERSION is set during the build stage
 	if VERSION == "" {
 		logger.Warning("VERSION IS NOT SET")
 	}
