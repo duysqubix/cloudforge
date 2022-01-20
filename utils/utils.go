@@ -1,25 +1,21 @@
+/*
+Copyright 2022 Vorys <dhuys@vorys.com>
+
+Useful utilities that doesn't fit in a particular group
+
+*/
 package utils
 
 import (
 	"bufio"
-	"encoding/json"
-	"fmt"
-	"log"
 	"os"
 )
 
-func PrettyPrint(v interface{}) (err error) {
-	b, err := json.MarshalIndent(v, "", "  ")
-	if err == nil {
-		fmt.Println(string(b))
-	}
-	return
-}
-
+// Reads a file and returns file contents newline seperated
 func ReadFileN(fpath string) []string {
 	file, err := os.Open(fpath)
 	if err != nil {
-		log.Fatal(err)
+		logger.Fatal(err)
 	}
 
 	defer file.Close()

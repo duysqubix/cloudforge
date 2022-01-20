@@ -1,3 +1,5 @@
+// Utils package holds structures and logic related to managing terraform
+// connecting to Azure services, and parsing raw terraform files
 package utils
 
 import (
@@ -10,8 +12,10 @@ import (
 
 var logger = logging.MustGetLogger("utils")
 
+// Directory where formatted terraform files will be dumped to
 const TMPDIR_PATH string = "/tmp/.terraform-go"
 
+// Returns executable path and returns a pathlib object
 func GetExecutablePath() *pathlib.Path {
 	exec, err := os.Executable()
 
@@ -39,6 +43,7 @@ func init() {
 
 }
 
+// removes duplicates strings in a string slice
 func removeDuplicateStr(strSlice []string) []string {
 	allKeys := make(map[string]bool)
 	list := []string{}
@@ -53,12 +58,14 @@ func removeDuplicateStr(strSlice []string) []string {
 	return list
 }
 
+// Represents the service principal used to authenticate against Azure
 type AzureServicePrincipal struct {
 	clientId     string
 	clientSecret string
 	tenantId     string
 }
 
+// Generates a new service principal object
 func NewServicePrincipal(clientId, clientSecret, tenantId *string) *AzureServicePrincipal {
 	return &AzureServicePrincipal{
 		clientId:     *clientId,

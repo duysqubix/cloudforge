@@ -1,3 +1,10 @@
+/*
+Copyright 2022 Duan Uys <dhuys@vorys.com>
+
+Utilities and objects related to replacing tokens within files
+with externally defined values.
+
+*/
 package utils
 
 import (
@@ -11,8 +18,14 @@ import (
 	"github.com/spf13/afero"
 )
 
+// global regexp that finds all values
+// encapsulated with `__`
+// ex: __MYTOKEN__
 const TOKEN_EXPRESSION string = "__(.*?)__"
 
+// Object that holds an entire directory
+// in memory and performs token replacement.
+// And dumps final result to a default TMPDIR_PATH
 type Tokenizer struct {
 	tree     *map[string]string
 	tokens   *map[string]string
@@ -20,6 +33,7 @@ type Tokenizer struct {
 	destPath pathlib.Path
 }
 
+// create new tokenizer object
 func TokenizerNew(tokens *map[string]string) *Tokenizer {
 	executablePath, err := os.Executable()
 
@@ -36,6 +50,10 @@ func TokenizerNew(tokens *map[string]string) *Tokenizer {
 	}
 }
 
+// recursivly traverses a directory and reads the objects
+// encountered. A directory will cause the method to be
+// invoked again. Any file encountered that passes the conditions
+// will be read and file contents stored within internal `Tokenizer.tree`
 func (t *Tokenizer) traverseDirectory(path *pathlib.Path) {
 	matches, _ := path.Glob("*")
 
@@ -58,11 +76,15 @@ func (t *Tokenizer) traverseDirectory(path *pathlib.Path) {
 	}
 }
 
+// Maps and reads directory starting from path as
+// defined in Tokenizer.RootDir()
 func (t *Tokenizer) ReadRoot() {
 	root := t.RootDir()
 	t.traverseDirectory(root)
 }
 
+// combines both validation and replacement of tokens
+// will panic if unused tokens have not been replaced
 func (t *Tokenizer) ReplaceAndValidateTokens(tokens *map[string]string) {
 	t.ReplaceTokens(tokens)
 	results := t.ValidateTokens(tokens)
@@ -71,6 +93,7 @@ func (t *Tokenizer) ReplaceAndValidateTokens(tokens *map[string]string) {
 	}
 }
 
+// validation process that identified unused tokens
 func (t *Tokenizer) ValidateTokens(tokens *map[string]string) *[]string {
 	r := regexp.MustCompile(TOKEN_EXPRESSION)
 	validationErrors := []string{}
@@ -87,6 +110,8 @@ func (t *Tokenizer) ValidateTokens(tokens *map[string]string) *[]string {
 	return &validationErrors
 }
 
+// handles physical replacement of tokens within Tokenizer.tree
+// with values defined by supplied parameter
 func (t *Tokenizer) ReplaceTokens(tokens *map[string]string) {
 	var toLog bool = true
 	for fpath, fcontent := range *t.tree {
@@ -101,6 +126,10 @@ func (t *Tokenizer) ReplaceTokens(tokens *map[string]string) {
 	}
 }
 
+// Writes entire Tokenizer.tree to supplied dirpath.
+//
+// TODO: Build logic to prevent dirpath from being the
+// same as RootDir()
 func (t *Tokenizer) DumpTo(dirpath *pathlib.Path) {
 	// check if dirpath exists
 
