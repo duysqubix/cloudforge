@@ -21,13 +21,14 @@ func NewConfigFile(fpath string) *ConfigFile {
 	return &c
 }
 
-func (c *ConfigFile) GetAllOpts() *map[string]string {
+// Retrieve all options fron config as a seperate entity
+func (c *ConfigFile) GetAllOpts() map[string]string {
 	newMap := map[string]string{}
 
-	for k, v := range newMap {
+	for k, v := range c.keyPairs {
 		newMap[k] = v
 	}
-	return &newMap
+	return newMap
 }
 
 // Reads and parses from internal `ConfigFile.fpath`
