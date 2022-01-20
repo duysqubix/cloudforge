@@ -28,7 +28,7 @@ import (
 
 var logger = logging.MustGetLogger("main")
 
-var VERSION string = ""
+var VERSION string
 
 func main() {
 
