@@ -26,6 +26,17 @@ func GetExecutablePath() *pathlib.Path {
 	return rootDir
 }
 
+// Get current working directory
+func GetCwd() *pathlib.Path {
+	cwd, err := os.Getwd()
+	if err != nil {
+		logger.Fatal(err)
+	}
+
+	cwdObj := pathlib.NewPathAfero(cwd, afero.NewOsFs())
+	return cwdObj
+}
+
 func init() {
 	var format = logging.MustStringFormatter(
 		`%{color}%{time:15:04:05.000} %{shortfunc} ▶ %{level:.4s} %{id:03x}%{color:reset} %{message}`,

@@ -8,10 +8,14 @@ build:
 version: build 
 	./ec version
 
+install: clean version
+	cp ec /usr/bin/
+
 clean:
 	go clean 
-	rm ec
+	rm -f ec
+	rm -f /usr/bin/ec 
 	
-push: version
+push: clean version
 	git tag $(VERSION)
 	git push origin master --tags

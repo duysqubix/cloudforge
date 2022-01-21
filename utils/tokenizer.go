@@ -9,7 +9,6 @@ package utils
 
 import (
 	"log"
-	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -29,24 +28,20 @@ const TOKEN_EXPRESSION string = "__(.*?)__"
 type Tokenizer struct {
 	tree     *map[string]string
 	tokens   *map[string]string
-	rootDir  pathlib.Path
-	destPath pathlib.Path
+	rootDir  *pathlib.Path
+	destPath *pathlib.Path
 }
 
 // create new tokenizer object
 func TokenizerNew(tokens *map[string]string) *Tokenizer {
-	executablePath, err := os.Executable()
 
-	if err != nil {
-		logger.Fatal(err)
-	}
-	rootDir := pathlib.NewPathAfero(executablePath, afero.NewOsFs()).Parent() // expects executable to be in root of entire project
+	rootDir := GetCwd()
 
 	return &Tokenizer{
 		tree:     &map[string]string{},
 		tokens:   tokens,
-		rootDir:  *rootDir,
-		destPath: *pathlib.NewPathAfero("/", afero.NewMemMapFs()),
+		rootDir:  rootDir,
+		destPath: pathlib.NewPathAfero("/", afero.NewMemMapFs()),
 	}
 }
 
@@ -176,5 +171,5 @@ func (t *Tokenizer) DumpTo(dirpath *pathlib.Path) {
 }
 
 func (t *Tokenizer) RootDir() *pathlib.Path {
-	return &t.rootDir
+	return t.rootDir
 }
