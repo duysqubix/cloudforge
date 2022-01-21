@@ -2,6 +2,7 @@ package utils
 
 import (
 	"os"
+	"reflect"
 	"testing"
 
 	"github.com/chigopher/pathlib"
@@ -52,4 +53,15 @@ func TestWriteFileN(t *testing.T) {
 			t.Errorf("file, %s, failed to be created", fpath)
 		}
 	})
+}
+
+func TestRemoveDuplicateStrings(t *testing.T) {
+	supplied := []string{"no", "no", "duplicates", "duplicates"}
+	want := []string{"no", "duplicates"}
+
+	got := removeDuplicateStr(supplied)
+
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("got %v, want %v, given %v", got, want, supplied)
+	}
 }

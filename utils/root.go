@@ -54,21 +54,6 @@ func init() {
 
 }
 
-// removes duplicates strings in a string slice
-func removeDuplicateStr(strSlice []string) []string {
-	allKeys := make(map[string]bool)
-	list := []string{}
-
-	for _, item := range strSlice {
-		if _, value := allKeys[item]; !value {
-			allKeys[item] = true
-			list = append(list, item)
-		}
-	}
-
-	return list
-}
-
 // Represents the service principal used to authenticate against Azure
 type AzureServicePrincipal struct {
 	clientId     string

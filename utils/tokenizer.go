@@ -27,19 +27,17 @@ const TOKEN_EXPRESSION string = "__(.*?)__"
 // And dumps final result to a default TMPDIR_PATH
 type Tokenizer struct {
 	tree     *map[string]string
-	tokens   *map[string]string
 	rootDir  *pathlib.Path
 	destPath *pathlib.Path
 }
 
 // create new tokenizer object
-func TokenizerNew(tokens *map[string]string) *Tokenizer {
+func TokenizerNew() *Tokenizer {
 
 	rootDir := GetCwd()
 
 	return &Tokenizer{
 		tree:     &map[string]string{},
-		tokens:   tokens,
 		rootDir:  rootDir,
 		destPath: pathlib.NewPathAfero("/", afero.NewMemMapFs()),
 	}
@@ -172,4 +170,8 @@ func (t *Tokenizer) DumpTo(dirpath *pathlib.Path) {
 
 func (t *Tokenizer) RootDir() *pathlib.Path {
 	return t.rootDir
+}
+
+func (t *Tokenizer) GetTree() *map[string]string {
+	return t.tree
 }
