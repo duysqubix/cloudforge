@@ -86,7 +86,7 @@ func baseTerraformSetup(env string) *utils.AzureTerraform {
 	}
 
 	config.ReadAndParse() // read either from file or os.Env
-	tokenizer := utils.TokenizerNew(config.GetAllOpts())
+	tokenizer := utils.TokenizerNew()
 	tokenizer.ReadRoot()
 
 	clientId := config.Get("ARM_CLIENT_ID")

@@ -9,7 +9,6 @@ package utils
 
 import (
 	"log"
-	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -28,25 +27,19 @@ const TOKEN_EXPRESSION string = "__(.*?)__"
 // And dumps final result to a default TMPDIR_PATH
 type Tokenizer struct {
 	tree     *map[string]string
-	tokens   *map[string]string
-	rootDir  pathlib.Path
-	destPath pathlib.Path
+	rootDir  *pathlib.Path
+	destPath *pathlib.Path
 }
 
 // create new tokenizer object
-func TokenizerNew(tokens *map[string]string) *Tokenizer {
-	executablePath, err := os.Executable()
+func TokenizerNew() *Tokenizer {
 
-	if err != nil {
-		logger.Fatal(err)
-	}
-	rootDir := pathlib.NewPathAfero(executablePath, afero.NewOsFs()).Parent() // expects executable to be in root of entire project
+	rootDir := GetCwd()
 
 	return &Tokenizer{
 		tree:     &map[string]string{},
-		tokens:   tokens,
-		rootDir:  *rootDir,
-		destPath: *pathlib.NewPathAfero("/", afero.NewMemMapFs()),
+		rootDir:  rootDir,
+		destPath: pathlib.NewPathAfero("/", afero.NewMemMapFs()),
 	}
 }
 
@@ -87,14 +80,14 @@ func (t *Tokenizer) ReadRoot() {
 // will panic if unused tokens have not been replaced
 func (t *Tokenizer) ReplaceAndValidateTokens(tokens *map[string]string) {
 	t.ReplaceTokens(tokens)
-	results := t.ValidateTokens(tokens)
+	results := t.ValidateTokens()
 	if len(*results) != 0 {
 		logger.Fatalf("The following tokens have not been parsed: %v", *results)
 	}
 }
 
 // validation process that identified unused tokens
-func (t *Tokenizer) ValidateTokens(tokens *map[string]string) *[]string {
+func (t *Tokenizer) ValidateTokens() *[]string {
 	r := regexp.MustCompile(TOKEN_EXPRESSION)
 	validationErrors := []string{}
 
@@ -176,5 +169,9 @@ func (t *Tokenizer) DumpTo(dirpath *pathlib.Path) {
 }
 
 func (t *Tokenizer) RootDir() *pathlib.Path {
-	return &t.rootDir
+	return t.rootDir
+}
+
+func (t *Tokenizer) GetTree() *map[string]string {
+	return t.tree
 }

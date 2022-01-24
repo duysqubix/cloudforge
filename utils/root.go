@@ -26,6 +26,17 @@ func GetExecutablePath() *pathlib.Path {
 	return rootDir
 }
 
+// Get current working directory
+func GetCwd() *pathlib.Path {
+	cwd, err := os.Getwd()
+	if err != nil {
+		logger.Fatal(err)
+	}
+
+	cwdObj := pathlib.NewPathAfero(cwd, afero.NewOsFs())
+	return cwdObj
+}
+
 func init() {
 	var format = logging.MustStringFormatter(
 		`%{color}%{time:15:04:05.000} %{shortfunc} ▶ %{level:.4s} %{id:03x}%{color:reset} %{message}`,
@@ -41,21 +52,6 @@ func init() {
 	// Set the backends to be used.
 	logging.SetBackend(backend1Leveled, backend1Formatter)
 
-}
-
-// removes duplicates strings in a string slice
-func removeDuplicateStr(strSlice []string) []string {
-	allKeys := make(map[string]bool)
-	list := []string{}
-
-	for _, item := range strSlice {
-		if _, value := allKeys[item]; !value {
-			allKeys[item] = true
-			list = append(list, item)
-		}
-	}
-
-	return list
 }
 
 // Represents the service principal used to authenticate against Azure

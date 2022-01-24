@@ -21,6 +21,14 @@ steps:
       version : '1.17.3'
 
   - task: Bash@3
+    displayName: "Testing Code"
+    inputs:
+      targetType: 'inline'
+      workingDirectory: '$(build.artifactstagingdirectory)/ecdeploy/'
+      script: |
+        go test ./... -v 
+
+  - task: Bash@3
     displayName: "Compile source code"
     inputs:
       targetType: 'inline'
