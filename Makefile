@@ -16,6 +16,6 @@ clean:
 	rm -f ec
 	rm -f /usr/bin/ec 
 	
-push: clean version
+push: 
 	git tag $(VERSION)
 	git push origin master --tags
