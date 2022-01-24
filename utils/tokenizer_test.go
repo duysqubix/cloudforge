@@ -82,6 +82,46 @@ func TestTokenizer(t *testing.T) {
 		if !(len(got) == len(want)) {
 			t.Errorf("got %v, want %v, tokens %v", got, want, dummyTokens)
 		}
+
+		t.Run("validate tokens", func(t *testing.T) {
+			token := &Tokenizer{
+				tree:     &map[string]string{},
+				rootDir:  pathlib.NewPathAfero(tmpRoot, afero.NewOsFs()),
+				destPath: pathlib.NewPathAfero(dumpPath, afero.NewOsFs()),
+			}
+
+			token.ReadRoot()
+			token.ReplaceTokens(&dummyTokens)
+
+			validErrors := token.ValidateTokens()
+			want := 0
+			got := len(*validErrors)
+
+			if want != got {
+				t.Errorf("want length %v, got length %v, with tokens %v", want, got, validErrors)
+			}
+		})
+
+		t.Run("unused token check", func(t *testing.T) {
+			token := &Tokenizer{
+				tree:     &map[string]string{},
+				rootDir:  pathlib.NewPathAfero(tmpRoot, afero.NewOsFs()),
+				destPath: pathlib.NewPathAfero(dumpPath, afero.NewOsFs()),
+			}
+
+			altTokens := map[string]string{"FOO": "bar"} // missing "BAR key"
+
+			token.ReadRoot()
+			token.ReplaceTokens(&altTokens)
+
+			validErrors := token.ValidateTokens() // should have one unused token
+			want := 1
+			got := len(*validErrors)
+
+			if want != got {
+				t.Errorf("want length %v, got length %v, with tokens %v", want, got, altTokens)
+			}
+		})
 	})
 
 }

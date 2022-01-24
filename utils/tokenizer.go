@@ -80,14 +80,14 @@ func (t *Tokenizer) ReadRoot() {
 // will panic if unused tokens have not been replaced
 func (t *Tokenizer) ReplaceAndValidateTokens(tokens *map[string]string) {
 	t.ReplaceTokens(tokens)
-	results := t.ValidateTokens(tokens)
+	results := t.ValidateTokens()
 	if len(*results) != 0 {
 		logger.Fatalf("The following tokens have not been parsed: %v", *results)
 	}
 }
 
 // validation process that identified unused tokens
-func (t *Tokenizer) ValidateTokens(tokens *map[string]string) *[]string {
+func (t *Tokenizer) ValidateTokens() *[]string {
 	r := regexp.MustCompile(TOKEN_EXPRESSION)
 	validationErrors := []string{}
 
