@@ -35,7 +35,9 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.PersistentFlags().BoolP("no-plan", "n", false, "Performs a plan action during validation")
+
+	rootCmd.AddCommand(terraformCmd)
+
 }
 
 func appendNoPlanFlag(cmd *cobra.Command) {

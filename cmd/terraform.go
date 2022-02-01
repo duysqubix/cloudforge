@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/chigopher/pathlib"
@@ -9,20 +10,43 @@ import (
 	"github.com/vorys-econtrol/ec/utils"
 )
 
+const (
+	defaultDevEnvFile  = ".env.dev"
+	defaultIntEnvFile  = ".env.int"
+	defaultUatEnvFile  = ".env.uat"
+	defaultProdEnvFile = ".env.prod"
+)
+
+var (
+	projDir string
+)
+
 func init() {
+	cwd, err := os.Getwd()
+	if err != nil {
+		logger.Fatalf("Unable to get current working directory, reason %v", err)
+	}
+
 	terraformCmd.AddCommand(validateCmd)
 	terraformCmd.AddCommand(deployCmd)
 
-	terraformCmd.AddCommand(prodCmd)
-	terraformCmd.AddCommand(uatCmd)
-	terraformCmd.AddCommand(intCmd)
-	terraformCmd.AddCommand(devCmd)
+	// add globally persistent flags to terraform cmd
+	terraformCmd.PersistentFlags().StringVarP(&projDir, "proj-dir", "p", cwd, "Path to project directory that contains terraform files ")
+
+	validateCmd.AddCommand(prodCmd)
+	validateCmd.AddCommand(uatCmd)
+	validateCmd.AddCommand(intCmd)
+	validateCmd.AddCommand(devCmd)
 
 	deployCmd.AddCommand(prodDeployCmd)
 	deployCmd.AddCommand(uatDeployCmd)
 	deployCmd.AddCommand(devDeployCmd)
 	deployCmd.AddCommand(intDeployCmd)
 
+	appendNoPlanFlag(devCmd)
+	appendNoPlanFlag(intCmd)
+	appendNoPlanFlag(uatCmd)
+	appendNoPlanFlag(prodCmd)
 }
 
 //################ COMMANDS ##########################
@@ -30,6 +54,10 @@ func init() {
 var terraformCmd = &cobra.Command{
 	Use:   "terraform",
 	Short: "Manages eControl 360 infrastructure",
+	Long:  `Used to validate and deploy eControl 360 infrastructure using Terraform.`,
+	Example: `
+	ec terraform [validate/deploy] [dev/int/uat/prod]
+	`,
 }
 
 var validateCmd = &cobra.Command{
@@ -143,16 +171,16 @@ func deployProd(cmd *cobra.Command, args []string) {
 //############################################################
 
 func baseTerraformSetup(env string) *utils.AzureTerraform {
-
+	fmt.Println(projDir)
 	switch env {
 	case "dev":
-		cfgFile = ".env.dev"
+		cfgFile = projDir + "/.env.dev"
 	case "int":
-		cfgFile = ".env.int"
+		cfgFile = projDir + "/.env.int"
 	case "uat":
-		cfgFile = ".env.uat"
+		cfgFile = projDir + "/.env.uat"
 	case "prod":
-		cfgFile = ".env.prod"
+		cfgFile = projDir + "/.env.prod"
 	default:
 		logger.Fatal("Incorrect environment supplied")
 	}
