@@ -5,9 +5,8 @@ Copyright © 2022 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
+	"github.com/vorys-econtrol/ec/version"
 )
 
 // versionCmd represents the version command
@@ -24,6 +23,6 @@ func init() {
 
 func ShowVersion(cmd *cobra.Command, args []string) {
 
-	fmt.Println("Version: ", VERSION)
+	cmd.Println(version.String())
 
 }

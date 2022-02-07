@@ -5,6 +5,7 @@ import (
 
 	"github.com/op/go-logging"
 	"github.com/spf13/cobra"
+	"github.com/vorys-econtrol/ec/version"
 )
 
 var logger = logging.MustGetLogger("cmd")
@@ -39,6 +40,7 @@ func init() {
 	rootCmd.AddCommand(terraformCmd)
 	rootCmd.AddCommand(datafactoryCmd)
 
+	rootCmd.Printf("Running EC Version: %s\n", version.String())
 }
 
 func appendNoPlanFlag(cmd *cobra.Command) {
