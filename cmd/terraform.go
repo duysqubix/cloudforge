@@ -7,7 +7,7 @@ import (
 	"github.com/chigopher/pathlib"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
-	"github.com/vorys-econtrol/ec/utils"
+	"github.com/vorys-econtrol/ec/internal"
 )
 
 const (
@@ -170,7 +170,7 @@ func deployProd(cmd *cobra.Command, args []string) {
 
 //############################################################
 
-func baseTerraformSetup(env string) *utils.AzureTerraform {
+func baseTerraformSetup(env string) *internal.AzureTerraform {
 	fmt.Println(projDir)
 	switch env {
 	case "dev":
@@ -186,19 +186,19 @@ func baseTerraformSetup(env string) *utils.AzureTerraform {
 	}
 
 	_, useArmEnv := os.LookupEnv("ARM_VARS_USE_EXISTING")
-	var config *utils.ConfigFile
+	var config *internal.ConfigFile
 	if !useArmEnv {
 		if cfgFile == "" {
 			logger.Fatal("cfgFile not set")
 		}
-		config = utils.NewConfigFile(cfgFile)
+		config = internal.NewConfigFile(cfgFile)
 
 	} else {
-		config = utils.NewConfigFile("") // we are using existing environment variables already set
+		config = internal.NewConfigFile("") // we are using existing environment variables already set
 	}
 
 	config.ReadAndParse() // read either from file or os.Env
-	tokenizer := utils.TokenizerNew()
+	tokenizer := internal.TokenizerNew(pathlib.NewPathAfero(projDir, afero.NewOsFs()))
 	tokenizer.ReadRoot()
 
 	clientId := config.Get("ARM_CLIENT_ID")
@@ -206,20 +206,20 @@ func baseTerraformSetup(env string) *utils.AzureTerraform {
 	tenantId := config.Get("ARM_TENANT_ID")
 	vaultName := config.Get("KEY_VAULT_NAME")
 
-	sp := utils.NewServicePrincipal(&clientId, &clientSecret, &tenantId)
-	tokens := utils.GetKeyVaultSecrets(&vaultName, sp)
+	sp := internal.NewServicePrincipal(&clientId, &clientSecret, &tenantId)
+	tokens := internal.GetKeyVaultSecrets(&vaultName, sp)
 
 	tokenizer.ReplaceAndValidateTokens(tokens)
-	tmp_dir := pathlib.NewPathAfero(utils.TMPDIR_PATH, afero.NewOsFs())
+	tmp_dir := pathlib.NewPathAfero(internal.TMPDIR_PATH, afero.NewOsFs())
 
 	tokenizer.DumpTo(tmp_dir)
-	tf := utils.NewAzureTerraformHandler(config)
+	tf := internal.NewAzureTerraformHandler(config)
 	return tf
 }
 
 // Performs validation of terraform with either a plan or no-plan
 // depending on supplied flag
-func validateTerraform(tf *utils.AzureTerraform, cmd *cobra.Command) {
+func validateTerraform(tf *internal.AzureTerraform, cmd *cobra.Command) {
 	resp, errors := tf.Validate()
 	if !resp {
 		logger.Fatalf("Terraform did not validate properly:\n%v", errors)
@@ -236,7 +236,7 @@ func validateTerraform(tf *utils.AzureTerraform, cmd *cobra.Command) {
 }
 
 // Performs an Apply action with -auto-apply
-func deployTerraform(tf *utils.AzureTerraform) {
+func deployTerraform(tf *internal.AzureTerraform) {
 	if err := tf.Deploy(); err != nil {
 		logger.Fatal(err)
 	}

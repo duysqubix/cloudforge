@@ -37,6 +37,7 @@ func Execute() {
 func init() {
 
 	rootCmd.AddCommand(terraformCmd)
+	rootCmd.AddCommand(datafactoryCmd)
 
 }
 
