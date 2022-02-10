@@ -51,7 +51,7 @@ func TestDecodeActionTemplate(t *testing.T) {
 	t.Run("Decode Trigger Template", func(t *testing.T) {
 
 		want := ActionTemplate{
-			TargetFile:   pathlib.NewPathAfero("exampleTrigger.json", afero.NewOsFs()),
+			TargetFile:   pathlib.NewPathAfero("trigger/exampleTrigger.json", afero.NewOsFs()),
 			TemplateType: TriggerType,
 			JsonActions: []JsonAction{
 				AddAction{jsonAction{Path: "$.add.path", Value: "add1"}},
