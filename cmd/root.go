@@ -125,6 +125,7 @@ func validateTerraform(tf *utils.AzureTerraform, cmd *cobra.Command) {
 
 // Performs an Apply action with -auto-apply
 func deployTerraform(tf *utils.AzureTerraform) {
+	logger.Info("DEPLOYING Infrastructure...")
 	if err := tf.Deploy(); err != nil {
 		logger.Fatal(err)
 	}

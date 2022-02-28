@@ -20,7 +20,7 @@ var devDeployCmd = &cobra.Command{
 	Use:   "dev",
 	Short: "Deploys dev environment",
 	Long:  ``,
-	Run:   ValidateDev,
+	Run:   DeployDev,
 }
 
 func init() {
