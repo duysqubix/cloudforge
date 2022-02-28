@@ -78,7 +78,7 @@ func removeDuplicateStr(strSlice []string) []string {
 // returns a unique dirname by appending a UUID string value
 // to supplied dirname
 func MakeDirUnique(dir *pathlib.Path) *pathlib.Path {
-	newName := fmt.Sprintf("%s-%s", dir.Name(), uuid.New().String())
+	newName := fmt.Sprintf("%s-%s", dir.String(), uuid.New().String())
 
 	return pathlib.NewPathAfero(newName, afero.NewOsFs())
 }
