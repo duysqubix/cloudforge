@@ -37,6 +37,15 @@ steps:
         make version && \
         mkdir -p $(build.artifactstagingdirectory)/ecdeploy/bin
         mv ec $(build.artifactstagingdirectory)/ecdeploy/bin
+  
+  - task: Bash@3
+    displayName: "Copy Over useful scripts"
+    inputs:
+      targetType: 'inline'
+      workingDirectory: '$(build.artifactstagingdirectory)/ecdeploy/'
+      script: |
+        cp scripts/tree $(build.artifactstagingdirectory)/ecdeploy/bin
+        cp deploy.sh $(build.artifactstagingdirectory)/ecdeploy/bin
 
   - task: PublishBuildArtifacts@1
     condition: eq(variables['Build.SourceBranch'], 'refs/heads/master') # only publish artifacts if this is built from the main branch
