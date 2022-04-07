@@ -65,3 +65,26 @@ func TestRemoveDuplicateStrings(t *testing.T) {
 		t.Errorf("got %v, want %v, given %v", got, want, supplied)
 	}
 }
+
+// returns a unique dirname by appending a UUID string value
+func TestMakeDirUnique(t *testing.T) {
+	numOfUniques := 100
+
+	baseDirName := "/tmp/mydir"
+
+	uniqueMap := make(map[string]bool)
+
+	pobj := pathlib.NewPathAfero(baseDirName, afero.NewOsFs())
+	for i := 0; i < numOfUniques; i++ {
+		uidName := MakeDirUnique(pobj)
+		uniqueMap[uidName.Name()] = true
+	}
+
+	want := numOfUniques
+	got := len(uniqueMap)
+
+	if want != got {
+		t.Errorf("want %v, got %v", want, got)
+	}
+
+}

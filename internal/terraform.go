@@ -13,6 +13,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/chigopher/pathlib"
 	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/hc-install/product"
 	"github.com/hashicorp/hc-install/releases"
@@ -67,7 +68,7 @@ func (t *AzureTerraform) Deploy() error {
 //
 // Also handles initalizing project and connects to backend
 // statefile container located within Azure
-func NewAzureTerraformHandler(c *ConfigFile) *AzureTerraform {
+func NewAzureTerraformHandler(c *ConfigFile, workingDir *pathlib.Path) *AzureTerraform {
 	c.SetArmEnvs()
 	installer := &releases.ExactVersion{
 		Product: product.Terraform,
@@ -79,8 +80,7 @@ func NewAzureTerraformHandler(c *ConfigFile) *AzureTerraform {
 		log.Fatalf("error installing Terraform: %s", err)
 	}
 
-	workingDir := TMPDIR_PATH
-	tf, err := tfexec.NewTerraform(workingDir, execPath)
+	tf, err := tfexec.NewTerraform(workingDir.String(), execPath)
 	if err != nil {
 		log.Fatalf("error running NewTerraform: %s", err)
 	}

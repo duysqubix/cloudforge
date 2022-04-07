@@ -119,11 +119,16 @@ func (t *Tokenizer) ReplaceTokens(tokens *map[string]string) {
 
 // Writes entire Tokenizer.tree to supplied dirpath.
 //
+/// If unique is true, it will append a UUID to end of supplied directory
 // TODO: Build logic to prevent dirpath from being the
 // same as RootDir()
-func (t *Tokenizer) DumpTo(dirpath *pathlib.Path) {
-	// check if dirpath exists
+func (t *Tokenizer) DumpTo(dirpath *pathlib.Path, unique bool) *pathlib.Path {
 
+	// create unique if supplied
+	if unique {
+		dirpath = MakeDirUnique(dirpath)
+	}
+	// check if dirpath exists
 	dirExists, err := dirpath.DirExists()
 	if err != nil {
 		logger.Fatal(err)
@@ -164,6 +169,8 @@ func (t *Tokenizer) DumpTo(dirpath *pathlib.Path) {
 		newPathObj.WriteFile([]byte(fcontent))
 		logger.Infof("Writing contents to %v", new_path)
 	}
+
+	return dirpath
 }
 
 func (t *Tokenizer) RootDir() *pathlib.Path {

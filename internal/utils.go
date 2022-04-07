@@ -8,9 +8,14 @@ package internal
 
 import (
 	"bufio"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
+
+	"github.com/chigopher/pathlib"
+	"github.com/google/uuid"
+	"github.com/spf13/afero"
 )
 
 // Write to a file
@@ -68,4 +73,12 @@ func removeDuplicateStr(strSlice []string) []string {
 	}
 
 	return list
+}
+
+// returns a unique dirname by appending a UUID string value
+// to supplied dirname
+func MakeDirUnique(dir *pathlib.Path) *pathlib.Path {
+	newName := fmt.Sprintf("%s-%s", dir.String(), uuid.New().String())
+
+	return pathlib.NewPathAfero(newName, afero.NewOsFs())
 }
