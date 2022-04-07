@@ -1,0 +1,30 @@
+{
+  "exampleLinkedService": {
+    "type": "linkedService",
+    "add": [
+      {
+        "path": "$.properties.typeProperties.addAttribute",
+        "value": "newAttribute"
+      },
+      {
+        "path": "$.properties.typeProperties.addToArray",
+        "value": "newElement"
+      }
+    ],
+    "remove": [
+      {
+        "path": "$.properties.typeProperties.removeAttribute"
+      },
+      {
+        "path": "$.properties.typeProperties.removeFromArray",
+        "value": "element1"
+      }
+    ],
+    "update": [
+      {
+        "path": "$.properties.typeProperties.updateAttribute",
+        "value": "updatedAttribute"
+      }
+    ]
+  }
+}
