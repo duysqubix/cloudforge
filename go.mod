@@ -7,6 +7,7 @@ require (
 	github.com/Azure/go-autorest/autorest/azure/auth v0.5.11
 	github.com/chigopher/pathlib v0.12.0
 	github.com/davecgh/go-spew v1.1.1
+	github.com/google/uuid v1.1.2
 	github.com/hashicorp/go-version v1.3.0
 	github.com/hashicorp/hc-install v0.3.1
 	github.com/hashicorp/terraform-exec v0.15.0

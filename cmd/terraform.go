@@ -212,8 +212,8 @@ func baseTerraformSetup(env string) *internal.AzureTerraform {
 	tokenizer.ReplaceAndValidateTokens(tokens)
 	tmp_dir := pathlib.NewPathAfero(internal.TMPDIR_PATH, afero.NewOsFs())
 
-	tokenizer.DumpTo(tmp_dir)
-	tf := internal.NewAzureTerraformHandler(config)
+	tokenizer.DumpTo(tmp_dir, true)
+	tf := internal.NewAzureTerraformHandler(config, tmp_dir)
 	return tf
 }
 
