@@ -39,6 +39,7 @@ func init() {
 
 	rootCmd.AddCommand(terraformCmd)
 	rootCmd.AddCommand(datafactoryCmd)
+	rootCmd.AddCommand(synapseCmd)
 
 	rootCmd.Printf("Running EC Version: %s\n", version.String())
 }
