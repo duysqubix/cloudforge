@@ -1,12 +1,125 @@
 from unittest import TestCase
-from src.synapse import SynPipeline, SynManager, SynResource
+from src.synapse import SynPipeline, SynManager, SynResource, AzDependency
 
 import json
 
 
 class SynapseTests(TestCase):
 
+    def test_populate_dependencies_duplicate(self):
+        "Test duplicate dependencies on a resource"
+
+        sample = {
+            "name": "MyResource",
+            "properties": {
+                "dataset": {
+                    "referenceName": "MyDataset",
+                    "type": "DatasetReference"
+                },
+                "other": {
+                    "linkedService": {
+                        "type": "LinkedServiceReference",
+                        "referenceName": "MyLinkedService"
+                    }
+                },
+                "other2": {
+                    "type": "LinkedServiceReference",
+                    "referenceName": "MyLinkedService"
+                }
+            }
+        }
+
+        azr = SynResource(sample)
+        azr.populate_dependencies()
+        want = [
+            AzDependency("MyDataset", "DatasetReference"),
+            AzDependency("MyLinkedService", "LinkedServiceReference")
+        ]
+
+        got = azr.deptracker
+
+        self.assertListEqual(want, got)
+
+    def test_populate_dependencies_multiple(self):
+        "Test multiple dependencies on a resource"
+
+        sample = {
+            "name": "MyResource",
+            "properties": {
+                "dataset": {
+                    "referenceName": "MyDataset",
+                    "type": "DatasetReference"
+                },
+                "other": {
+                    "linkedService": {
+                        "type": "LinkedServiceReference",
+                        "referenceName": "MyLinkedService"
+                    }
+                }
+            }
+        }
+
+        azr = SynResource(sample)
+        azr.populate_dependencies()
+        want = [
+            AzDependency("MyDataset", "DatasetReference"),
+            AzDependency("MyLinkedService", "LinkedServiceReference")
+        ]
+
+        got = azr.deptracker
+
+        self.assertListEqual(want, got)
+
+    def test_populate_dependencies_not_pipelines(self):
+        "Populate resource dependencies of NOT type pipeline"
+        sample = {
+            "name": "MyResource",
+            "properties": {
+                "dataset": {
+                    "referenceName": "MyDataset",
+                    "type": "DatasetReference"
+                }
+            }
+        }
+        azr = SynResource(sample)
+        azr.populate_dependencies()
+
+        want = AzDependency("MyDataset", "DatasetReference")
+        got = azr.deptracker[0]
+        self.assertEqual(got, want)
+
+    def test_populate_dependencies_pipelines(self):
+        "Populate resource dependencies of type pipeline"
+
+        sample = {
+            "name": "MyResource",
+            "properties": {
+                "activities": [{
+                    "dataset": {
+                        "referenceName": "MyDataset",
+                        "type": "DatasetReference"
+                    }
+                }]
+            }
+        }
+
+        azr = SynResource(sample)
+        azr.populate_dependencies()
+
+        want = AzDependency("MyDataset", "DatasetReference")
+        self.assertEqual(want, azr.deptracker[0])
+
+    def test_dependency_format_ARM(self):
+        "Test proper dependecy ARM format"
+        name = "MyDependency"
+        type = "MyDependencyReference"
+
+        dep = AzDependency(name, type)
+        self.assertEqual(dep.formatARM(), "/myDependencys/MyDependency")
+
     def test_add_pipeline_success(self):
+        "Test add pipeline resource successfully"
+
         data = """
         {
     	    "name": "myname",
@@ -27,7 +140,7 @@ class SynapseTests(TestCase):
         assert pipeline == manager.resources[SynPipeline][0]
 
     def test_pipeline_not_equal(self):
-        "tests if pipelines are not equal"
+        "Test pipeline resource objects are not equal"
 
         data1 = """
         {
@@ -61,6 +174,7 @@ class SynapseTests(TestCase):
         self.assertNotEqual(p1, p2)
 
     def test_create_syn_resource(self):
+        "Test creating a synapse resource"
         sample = '{"name": "myname", "properties": {"prop1": 1, "prop2": 2}}'
         got = SynResource(json.loads(sample))
 
