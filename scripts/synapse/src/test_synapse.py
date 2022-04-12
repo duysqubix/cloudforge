@@ -117,6 +117,30 @@ class SynapseTests(TestCase):
         dep = AzDependency(name, type)
         self.assertEqual(dep.formatARM(), "/myDependencys/MyDependency")
 
+    def test_dependency_format_ARM_Prefix(self):
+        "Test formatting of dependency with added suffix"
+        name = "MyDep"
+        type = "MyDepReference"
+
+        dep = AzDependency(name, type)
+
+        got = dep.formatARM(prefix="/an/example")
+        want = "/an/example/myDeps/MyDep"
+
+        self.assertEqual(got, want)
+
+    def test_dependency_format_ARM_Suffix(self):
+        "Test formatting of dependency with added suffix"
+        name = "MyDep"
+        type = "MyDepReference"
+
+        dep = AzDependency(name, type)
+
+        got = dep.formatARM(suffix="/v1")
+        want = "/myDeps/MyDep/v1"
+
+        self.assertEqual(got, want)
+
     def test_add_pipeline_success(self):
         "Test add pipeline resource successfully"
 

@@ -1,3 +1,6 @@
+import logging
+
+
 class AzResource:
     """
     Base object class that represents an azure resource
@@ -6,6 +9,10 @@ class AzResource:
     def __init__(self, name: str, properties: dict):
         self.name = name
         self.properties = properties
+        self.init()
+
+    def init(self):
+        pass
 
 
 class AzDependency:
@@ -14,10 +21,10 @@ class AzDependency:
         self.name = name
         self.type = type
 
-    def formatARM(self):
+    def formatARM(self, prefix="", suffix=""):
         t = (self.type[0].lower() + self.type[1:]).replace("Reference",
                                                            "") + "s"
-        return f"/{t}/{self.name}"
+        return prefix + f"/{t}/{self.name}" + suffix
 
     def __eq__(self, other):
         return (self.name == other.name) and \
@@ -28,3 +35,9 @@ class AzDependency:
 
     def __repr__(self):
         return self.formatARM()
+
+
+class Logger:
+
+    def __init__(self, log):
+        self._log = log
