@@ -1,12 +1,10 @@
-import logging
-
-
 class AzResource:
     """
     Base object class that represents an azure resource
     """
 
     def __init__(self, name: str, properties: dict):
+        super().__init__()
         self.name = name
         self.properties = properties
         self.init()
@@ -37,7 +35,6 @@ class AzDependency:
         return self.formatARM()
 
 
-class Logger:
-
-    def __init__(self, log):
-        self._log = log
+RESOURCE_MAP = {"SynPipeline": "ArmSynPipeline"}
+ARM_VERSION = "2019-06-01-preview"
+ARM_SCHEMA = "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#"

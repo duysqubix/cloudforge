@@ -1,6 +1,8 @@
 from unittest import TestCase
+from src import RESOURCE_MAP
 from src.synapse import SynPipeline, SynManager, SynResource, AzDependency
 
+import random
 import json
 
 
@@ -204,3 +206,28 @@ class SynapseTests(TestCase):
 
         self.assertEqual(got.name, 'myname')
         self.assertDictEqual(got.properties, {'prop1': 1, 'prop2': 2})
+
+    def test_syntoarm_valid_resource_creations(self):
+
+        # this is dangerous, and i don't really like it
+        valid_objs = [eval(x) for x in RESOURCE_MAP.keys()]
+        resources = {}
+
+        for idx in range(10):
+            cl = random.choice(valid_objs)
+            res = cl({
+                "name": "MyName_%s" % idx,
+                "properties": {
+                    "activities": {}
+                },
+                "activities": {}
+            })
+
+            arm = res.convert_to_arm(res)
+            arm_name = arm.__class__.__name__
+            resources[arm_name] = res.__class__.__name__
+
+        for objArmClsName, objSynClsName in resources.items():
+            want = RESOURCE_MAP[objSynClsName]
+            got = objArmClsName
+            self.assertEqual(got, want)

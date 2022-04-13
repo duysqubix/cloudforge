@@ -1,6 +1,6 @@
-from src import AzResource, AzDependency
-from src.arm import ArmTemplate
-from typing import Any, List
+from src import RESOURCE_MAP, AzResource, AzDependency
+from src.arm import ArmResource, ArmTemplate, ArmSynPipeline
+from typing import Any, List, Optional
 
 
 class SynManager:
@@ -33,7 +33,57 @@ class SynManager:
         return ArmTemplate()
 
 
-class SynResource(AzResource):
+class SyntoArmModule:
+    """Helper class that contains logic for converting a SynResource into a SynArm
+    Resource
+    """
+
+    class ConversionError(Exception):
+        pass
+
+    def __init__(self):
+        super().__init__()
+
+    def convert_to_arm(self, resource) -> ArmResource:
+        if not issubclass(type(resource), SynResource):
+            raise ValueError("resource object is not a subclass of %s" %
+                             type(resource))
+        type_name = str(type(resource))
+
+        if "SynResource" in type_name:
+            raise ValueError("resourceource object shouldn't use BaseClass of " + \
+                             "SynResource")
+        for objname in RESOURCE_MAP.keys():
+            if not (objname in type_name):
+                continue
+            armObj = eval(RESOURCE_MAP[objname])
+
+            #################################################################
+            #                                                               #
+            #     Explicitly initiate object by type to handle use-cases    #
+            #                                                               #
+            #################################################################
+            armInstance: Optional[ArmResource] = None
+            if objname == 'SynPipeline':
+                armInstance = armObj(name=resource.name,
+                                     properties=resource.properties,
+                                     workspace_name="")
+
+            #################################################################
+            if armInstance is None:
+                raise ValueError("Resource of type: %s not implemented" %
+                                 objname)
+            ######## Copy Over Dependencies ########
+            for dep in resource.deptracker:
+                armInstance.add_dep(dep)
+
+            return armInstance
+
+        raise self.ConversionError("Unable to convert Syn to ARM: %s" %
+                                   type_name)
+
+
+class SynResource(AzResource, SyntoArmModule):
     """
     Object class representing Synapse JSON resource
     """
@@ -41,10 +91,10 @@ class SynResource(AzResource):
     def __init__(self, jdata: dict):
         name = jdata['name']
         properties = jdata['properties']
-        super().__init__(name, properties)
 
         # used to track dependencies)
         self.deptracker: List[AzDependency] = list()
+        super().__init__(name, properties)
 
     def populate_dependencies(self, data=None):
         """
@@ -52,8 +102,6 @@ class SynResource(AzResource):
         """
         if data is None:
             self.deptracker.clear()
-
-        if not data:
             data = self.properties
 
         if isinstance(data, dict):
@@ -66,7 +114,6 @@ class SynResource(AzResource):
                 # if any dep already exists.. return this recursive step
                 if any([(x == dep) for x in self.deptracker]):
                     return
-
                 self.deptracker.append(dep)
             else:
                 for _, v in data.items():
@@ -98,12 +145,13 @@ class SynPipeline(SynResource):
             return not self.__eq__(other)
 
     def __init__(self, jdata: dict):
-        super().__init__(jdata)
         self.activities = list()
         self._jdata = jdata
 
         for actJdata in jdata['properties']['activities']:
             self.activities.append(self.PipelineActivity(actJdata))
+
+        super().__init__(jdata)
 
     def __eq__(self, other):
         return self._jdata == other._jdata
