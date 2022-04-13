@@ -1,5 +1,5 @@
 from src import RESOURCE_MAP, AzResource, AzDependency
-from src.arm import ArmResource, ArmTemplate, ArmSynPipeline, ArmSynLinkedService
+from src.arm import ArmResource, ArmSynTrigger, ArmTemplate, ArmSynPipeline, ArmSynLinkedService, ArmSynTrigger
 from typing import Any, List, Optional
 
 
@@ -72,6 +72,11 @@ class SyntoArmModule:
                 armInstance = armObj(name=resource.name,
                                      properties=resource.properties,
                                      workspace_name="")
+
+            elif objname == "SynTrigger":
+                armInstance = armObj(name=resource.name,
+                                     properties=resource.properties,
+                                     workspace_name="")
             #################################################################
             if armInstance is None:
                 raise ValueError("Resource of type: %s not implemented" %
@@ -129,11 +134,16 @@ class SynResource(AzResource, SyntoArmModule):
             return
 
 
+class SynTrigger(SynResource):
+    """
+    Object representing a synapse trigger resource
+    """
+
+
 class SynLinkedService(SynResource):
     """
     Object representing a synapse linkedService resource
     """
-    pass
 
 
 class SynPipeline(SynResource):

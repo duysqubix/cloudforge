@@ -58,6 +58,8 @@ class ArmResource(AzResource):
                 and all([x in other.depends_on
                          for x in self.depends_on]) and self.name == other.name
                 and self.properties == other.properties)
+
+    def __neq__(self, other):
         return not self.__eq__(other)
 
     def __repr__(self):
@@ -72,6 +74,14 @@ class ArmSynResource(ArmResource):
 
     def init(self):
         self.type = "Microsoft.Synapse/workspaces"
+
+
+class ArmSynTrigger(ArmSynResource):
+    """
+    Object class representing an ARM Synapse Trigger Resource
+    """
+
+    __resource_type__ = "triggers"
 
 
 class ArmSynLinkedService(ArmSynResource):

@@ -37,7 +37,8 @@ class AzDependency:
 
 RESOURCE_MAP = {
     "SynPipeline": "ArmSynPipeline",
-    "SynLinkedService": "ArmSynLinkedService"
+    "SynLinkedService": "ArmSynLinkedService",
+    "SynTrigger": "ArmSynTrigger"
 }
 ARM_VERSION = "2019-06-01-preview"
 ARM_SCHEMA = "http://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#"

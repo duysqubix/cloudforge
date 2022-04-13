@@ -2,7 +2,7 @@ from pathlib import Path
 
 import json
 
-from src.synapse import SynLinkedService, SynPipeline
+from src.synapse import *
 from src.arm import SynArmTemplate
 import sys
 
@@ -30,21 +30,32 @@ if __name__ == '__main__':
     linkedServiceDir = Path(
         __file__).parent / ".syntest/ec360-syn-main-dev/linkedService"
 
+    triggerDir = Path(__file__).parent / ".syntest/ec360-syn-main-dev/trigger"
+
     pipelineF = [x for x in pipelineDir.glob("*.json")][0]
     lksF = [x for x in linkedServiceDir.glob("*.json")][0]
+    triggerF = [x for x in triggerDir.glob("*.json")][0]
 
-    pipelineJson, lksJson = None, None
+    pipelineJson = None
+    lksJson = None
+    triggerJson = None
 
-    with open(pipelineF, 'r') as pip, open(lksF, 'r') as lksf:
+
+    with open(pipelineF, 'r') as pip, \
+         open(lksF, 'r') as lksf, \
+         open(triggerF, 'r') as trigger:
+
         pipelineJson = json.load(pip)
         lksJson = json.load(lksf)
+        triggerJson = json.load(trigger)
 
     armt = SynArmTemplate(workspace_name="ec360-syn-main-dev")
 
-    pipeline_resource = SynPipeline(pipelineJson)
-    lks_resource = SynLinkedService(lksJson)
-
-    for res in [pipeline_resource, lks_resource]:
+    for res in [
+            SynPipeline(pipelineJson),
+            SynLinkedService(lksJson),
+            SynTrigger(triggerJson)
+    ]:
         res.populate_dependencies()
         armr = res.convert_to_arm(res)
 

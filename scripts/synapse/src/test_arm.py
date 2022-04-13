@@ -1,6 +1,6 @@
 from unittest import TestCase
 from src import ARM_SCHEMA, ARM_VERSION, AzDependency
-from src.arm import ArmResource, ArmSynPipeline, ArmTemplate, SynArmTemplate
+from src.arm import *
 
 
 class ArmTests(TestCase):
@@ -8,7 +8,7 @@ class ArmTests(TestCase):
     def test_base_class_invalid(self):
         with self.assertRaises(NotImplementedError):
             t = ArmTemplate()
-            t.workspaceId()
+            t.workspaceId
 
     def test_arm_resource_creation(self):
 
