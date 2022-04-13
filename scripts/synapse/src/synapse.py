@@ -1,5 +1,5 @@
 from src import RESOURCE_MAP, AzResource, AzDependency
-from src.arm import ArmResource, ArmSynTrigger, ArmTemplate, ArmSynPipeline, ArmSynLinkedService, ArmSynTrigger
+from src.arm import *
 from typing import Any, List, Optional
 
 
@@ -77,6 +77,10 @@ class SyntoArmModule:
                 armInstance = armObj(name=resource.name,
                                      properties=resource.properties,
                                      workspace_name="")
+            elif objname == "SynCredential":
+                armInstance = armObj(name=resource.name,
+                                     properties=resource.properties,
+                                     workspace_name="")
             #################################################################
             if armInstance is None:
                 raise ValueError("Resource of type: %s not implemented" %
@@ -132,6 +136,12 @@ class SynResource(AzResource, SyntoArmModule):
                 self.populate_dependencies(elem)
         else:
             return
+
+
+class SynCredential(SynResource):
+    """
+    Object representing a synapse Credential resource
+    """
 
 
 class SynTrigger(SynResource):

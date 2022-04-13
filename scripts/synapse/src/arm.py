@@ -76,6 +76,13 @@ class ArmSynResource(ArmResource):
         self.type = "Microsoft.Synapse/workspaces"
 
 
+class ArmSynCredential(ArmSynResource):
+    """
+    Object class representing an ARM Synapse Credential Resource
+    """
+    __resource_type__ = ""
+
+
 class ArmSynTrigger(ArmSynResource):
     """
     Object class representing an ARM Synapse Trigger Resource
