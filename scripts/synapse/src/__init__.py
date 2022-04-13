@@ -35,6 +35,9 @@ class AzDependency:
         return self.formatARM()
 
 
-RESOURCE_MAP = {"SynPipeline": "ArmSynPipeline"}
+RESOURCE_MAP = {
+    "SynPipeline": "ArmSynPipeline",
+    "SynLinkedService": "ArmSynLinkedService"
+}
 ARM_VERSION = "2019-06-01-preview"
-ARM_SCHEMA = "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#"
+ARM_SCHEMA = "http://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#"

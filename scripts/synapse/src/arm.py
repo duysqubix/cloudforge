@@ -58,8 +58,6 @@ class ArmResource(AzResource):
                 and all([x in other.depends_on
                          for x in self.depends_on]) and self.name == other.name
                 and self.properties == other.properties)
-
-    def __neq__(self, other):
         return not self.__eq__(other)
 
     def __repr__(self):
@@ -70,14 +68,24 @@ class ArmResource(AzResource):
         return self.type + "/" + self.__resource_type__
 
 
-class ArmSynPipeline(ArmResource):
+class ArmSynResource(ArmResource):
+
+    def init(self):
+        self.type = "Microsoft.Synapse/workspaces"
+
+
+class ArmSynLinkedService(ArmSynResource):
+    """
+    Object class representing an ARM Synapse Linked Service Resource
+    """
+    __resource_type__ = "linkedServices"
+
+
+class ArmSynPipeline(ArmSynResource):
     """
     Object class representing a ARM Pipeline Resource
     """
     __resource_type__ = "pipelines"
-
-    def init(self):
-        self.type = "Microsoft.Synapse/workspaces"
 
 
 class SynArmTemplate(ArmTemplate):
@@ -107,7 +115,6 @@ class SynArmTemplate(ArmTemplate):
         for resource in self._resources:
             prefix = self.workspaceId + "/" + self.workspace_name
             depends_on_str = resource.to_arm_json(prefix=prefix)
-            print(depends_on_str)
             depends_on.append(depends_on_str)
 
         return {

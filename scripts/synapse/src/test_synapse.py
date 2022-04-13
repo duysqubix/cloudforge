@@ -1,12 +1,14 @@
 from unittest import TestCase
 from src import RESOURCE_MAP
-from src.synapse import SynPipeline, SynManager, SynResource, AzDependency
-
+from src.synapse import SynPipeline, SynManager, SynResource, AzDependency, SynLinkedService
 import random
 import json
 
 
 class SynapseTests(TestCase):
+
+    def test_create_linked_service_resource(self):
+        pass
 
     def test_populate_dependencies_duplicate(self):
         "Test duplicate dependencies on a resource"
