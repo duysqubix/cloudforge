@@ -97,6 +97,11 @@ class SyntoArmModule:
                                      properties=resource.properties,
                                      workspace_name="")
 
+            elif objname == "SynIntegrationRuntime":
+                armInstance = armObj(name=resource.name,
+                                     properties=resource.properties,
+                                     workspace_name="")
+
             #################################################################
             if armInstance is None:
                 raise ValueError("Resource of type: %s not implemented" %
@@ -196,6 +201,12 @@ class SynNotebook(SynResource):
         if not changed:
             return code
         return fmt_code
+
+
+class SynIntegrationRuntime(SynResource):
+    """
+    Object representing a synapose Integration Runtime resource
+    """
 
 
 class SynDataset(SynResource):

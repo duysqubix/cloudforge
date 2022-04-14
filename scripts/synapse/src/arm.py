@@ -76,6 +76,13 @@ class ArmSynResource(ArmResource):
         self.type = "Microsoft.Synapse/workspaces"
 
 
+class ArmSynIntegrationRuntime(ArmSynResource):
+    """
+    Object class representing an ARM Synapse Integration Runtime Resource
+    """
+    __resource_type__ = "integrationRuntimes"
+
+
 class ArmSynNotebook(ArmSynResource):
     """
     Object class representing an ARM Synapse Notebook Resource

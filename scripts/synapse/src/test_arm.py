@@ -10,6 +10,24 @@ class ArmTests(TestCase):
             t = ArmTemplate()
             t.workspaceId
 
+    def test_arm_resource_syn_integrationRuntime(self):
+
+        name = "MyResourceName"
+        properties = {"activities": [1, 2], "foo": "bar"}
+
+        dep = AzDependency("MyResourceName", "MyTypeReference")
+
+        armr = ArmSynIntegrationRuntime(name=name, properties=properties)
+
+        armr.add_dep(dep)
+
+        self.assertEqual(armr.name, name)
+        self.assertEqual(armr.properties, properties)
+        self.assertListEqual(armr.depends_on, [dep])
+        self.assertEqual(armr.api_version, "2019-06-01-preview")
+        self.assertEqual(armr.__resource_type__, "integrationRuntimes")
+        self.assertEqual(armr.type, "Microsoft.Synapse/workspaces")
+
     def test_arm_resource_syn_notebooks(self):
 
         name = "MyResourceName"

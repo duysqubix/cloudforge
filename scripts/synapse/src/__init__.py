@@ -41,7 +41,8 @@ RESOURCE_MAP = {
     "SynTrigger": "ArmSynTrigger",
     "SynCredential": "ArmSynCredential",
     "SynDataset": "ArmSynDataset",
-    "SynNotebook": "ArmSynNotebook"
+    "SynNotebook": "ArmSynNotebook",
+    "SynIntegrationRuntime": "ArmSynIntegrationRuntime"
 }
 ARM_VERSION = "2019-06-01-preview"
 ARM_SCHEMA = "http://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#"
