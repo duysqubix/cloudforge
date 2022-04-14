@@ -1,8 +1,9 @@
-import json
+import logging
 from typing import Any, List, Optional
 from yapf.yapflib.yapf_api import FormatCode
 
-from src import RESOURCE_MAP, AzResource, AzDependency
+from src import RESOURCE_MAP, VALID_CELL_MAGIC_COMMANDS, AzResource, AzDependency, VALID_LINE_MAGIC_COMMANDS
+
 from src.arm import *
 
 
@@ -173,15 +174,49 @@ class SynNotebook(SynResource):
         except KeyError:
             self.default_language = "python"
 
-    def format_code(self):
-        print(self.name, self.properties.keys())
-        for idx, cell in enumerate(self.properties['cells']):
-            code_lst = cell['source']
-            code_str = "\n".join(
-                [s.replace('\n', '').replace('\r', '') for s in code_lst])
-            code_fmt = ""
+    def _magic_command_in_line(self, code_str):
+        return any([x in code_str for x in VALID_LINE_MAGIC_COMMANDS])
 
-            if "%%" not in code_str:
+    def _magic_command_cell(self, code_str):
+        return any([x in code_str for x in VALID_CELL_MAGIC_COMMANDS])
+
+    def _code_list_to_str(self, code: List[str], ignore_magic=False) -> str:
+        code_lst = code[:]
+
+        for idx in range(len(code_lst)):
+            line = code_lst[idx]
+            line = line.replace('\n\r', '\n')
+
+            logging.debug("MAGIC_IN_LINE: ", self._magic_command_in_line(line),
+                          " | IGNORE_MAGIC: ", ignore_magic)
+            if self._magic_command_in_line(line) and (not ignore_magic):
+                line = "# " + line
+                logging.debug("ADD_COMMENT: ", line)
+                code_lst[idx] = line
+        return "".join(code_lst)
+
+    def _code_str_to_list(self, code: str) -> List[str]:
+        lst = []
+        for line in code.split('\n'):
+            if line != "":
+                line = line.strip() + "\r\n"
+                logging.debug("LINE: ", repr(line))
+                lst.append(line)
+        return lst
+
+    def format_code(self):
+        for idx, cell in enumerate(self.properties['cells']):
+            logging.debug("IDX: ", idx, cell['source'])
+            code_str = self._code_list_to_str(cell['source'],
+                                              ignore_magic=False)
+
+            logging.debug("CODE: ", repr(code_str))
+            # checks to see if cell code is written not in default_language
+            # precense of magic cell block indicates this
+            if not self._magic_command_cell(code_str):
+
+                code_fmt = ""
+
                 if (self.default_language == 'python'):
                     code_fmt = self._format_python_code(code_str)
 
@@ -189,18 +224,26 @@ class SynNotebook(SynResource):
                     raise NotImplementedError(
                         "formatting of language: %s not supported" %
                         self.default_language)
-                code_fmt_lst = [
-                    line + "\r\n" for line in code_fmt.split('\n')
-                    if line != ""
-                ]
+
+                code_fmt_lst = self._code_str_to_list(code_fmt)
                 self.properties['cells'][idx]['source'] = code_fmt_lst
 
     def _format_python_code(self, code: str) -> str:
+        logging.debug("PREFORMAT", repr(code))
+        fmt_code, _ = FormatCode(code)
 
-        fmt_code, changed = FormatCode(code)
-        if not changed:
-            return code
-        return fmt_code
+        # uncomment magic line commands
+        final_lst = []
+        for line in self._code_str_to_list(fmt_code):
+            if self._magic_command_in_line(line):
+                logging.debug("PRE_MAGIC_REMOVE: ", repr(line))
+                line = line[2:]
+                logging.debug("POST_MAGIC_REMOVE: ", repr(line))
+            final_lst.append(line)
+
+        final_code = self._code_list_to_str(final_lst, ignore_magic=True)
+        logging.debug("POSTFORMAT: ", repr(final_code))
+        return final_code
 
 
 class SynIntegrationRuntime(SynResource):

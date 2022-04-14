@@ -10,6 +10,68 @@ class SynapseTests(TestCase):
     def setUp(self):
         self.maxDiff = None
 
+    def test_notebook_format_python_line_magic_command_ignore_mult_cells(self):
+        """Test should ignore the line that is a magic link command"""
+        sample = {
+            "name": "MyNotebook",
+            "properties": {
+                "cells": [{
+                    "cell_type":
+                    "code",
+                    "source": [
+                        "%run SuperDuperSpeedyAlgorithims\r\n",
+                        "f ( a = 3, b = 4 )\r\n",
+                    ],
+                    "execution_count":
+                    1
+                }, {
+                    "cell_type": "code",
+                    "source": ["%run AnotherNotPythonLine\r\n"],
+                    "execution_count": 2
+                }]
+            }
+        }
+
+        notebook = SynNotebook(sample)
+        notebook.format_code()
+        got = notebook.properties['cells'][0]['source']
+
+        self.assertListEqual(
+            got, ["%run SuperDuperSpeedyAlgorithims\r\n", "f(a=3, b=4)\r\n"])
+
+        got = notebook.properties['cells'][1]['source']
+
+        self.assertListEqual(got, ["%run AnotherNotPythonLine\r\n"])
+
+    def test_notebook_format_python_line_magic_command_ignore(self):
+        """Test should ignore the line that is a magic link command"""
+        sample = {
+            "name": "MyNotebook",
+            "properties": {
+                "cells": [
+                    {
+                        "cell_type":
+                        "code",
+                        "source": [
+                            "%run MyOtherFileThisIsNotAValidPythonLine\r\n",
+                            "f ( a = 1, b = 2 )\r\n",
+                        ],
+                        "execution_count":
+                        1
+                    },
+                ]
+            }
+        }
+
+        want = [
+            "%run MyOtherFileThisIsNotAValidPythonLine\r\n", "f(a=1, b=2)\r\n"
+        ]
+
+        notebook = SynNotebook(sample)
+        notebook.format_code()
+        got = notebook.properties['cells'][0]['source']
+        self.assertListEqual(got, want)
+
     def test_notebook_format_python_code_block(self):
         sample = {
             "name": "MyNotebook",
@@ -276,7 +338,7 @@ class SynapseTests(TestCase):
                 "properties": {
                     "activities": {},
                     "cells": [{
-                        "source": ["my\r\n", "super\r\n", "code\r\n"]
+                        "source": ["import sys\r\n"]
                     }]
                 },
                 "activities": {}

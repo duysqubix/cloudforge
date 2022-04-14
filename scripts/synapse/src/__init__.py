@@ -44,5 +44,24 @@ RESOURCE_MAP = {
     "SynNotebook": "ArmSynNotebook",
     "SynIntegrationRuntime": "ArmSynIntegrationRuntime"
 }
+
 ARM_VERSION = "2019-06-01-preview"
 ARM_SCHEMA = "http://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#"
+
+#########################################################################
+# last updated: April 14, 2022
+#
+# Source:
+#   https://docs.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-development-using-notebooks
+#
+VALID_LINE_MAGIC_COMMANDS = [
+    "%lsmagic", "%time", "%timeit", "%history", "%run", "%load"
+]
+
+VALID_CELL_MAGIC_COMMANDS = [
+    "%%time", "%%timeit", "%%capture", "%%writefile", "%%sql", "%%pyspark",
+    "%%spark", "%%csharp", "%%html", "%%configure"
+]
+
+VALID_MAGIC_COMMANDS = VALID_CELL_MAGIC_COMMANDS + VALID_LINE_MAGIC_COMMANDS
+#########################################################################
