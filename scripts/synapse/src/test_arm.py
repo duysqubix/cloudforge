@@ -10,6 +10,132 @@ class ArmTests(TestCase):
             t = ArmTemplate()
             t.workspaceId
 
+    def test_arm_resource_syn_notebooks(self):
+
+        name = "MyResourceName"
+        properties = {"activities": [1, 2], "foo": "bar"}
+
+        dep = AzDependency("MyResourceName", "MyTypeReference")
+
+        armr = ArmSynNotebook(name=name, properties=properties)
+
+        armr.add_dep(dep)  # this should be actively not add any dependent)
+
+        self.assertEqual(armr.name, name)
+        self.assertEqual(armr.properties, properties)
+        self.assertListEqual(armr.depends_on, [])
+        self.assertEqual(armr.api_version, "2019-06-01-preview")
+        self.assertEqual(armr.__resource_type__, "notebooks")
+        self.assertEqual(armr.type, "Microsoft.Synapse/workspaces")
+
+    def test_arm_resource_syn_dataset(self):
+
+        name = "MyResourceName"
+        properties = {"activities": [1, 2], "foo": "bar"}
+
+        dep = AzDependency("MyResourceName", "MyTypeReference")
+
+        armr = ArmSynDataset(name=name, properties=properties)
+
+        armr.add_dep(dep)
+
+        self.assertEqual(armr.name, name)
+        self.assertEqual(armr.properties, properties)
+        self.assertListEqual(armr.depends_on, [dep])
+        self.assertEqual(armr.api_version, "2019-06-01-preview")
+        self.assertEqual(armr.__resource_type__, "datasets")
+        self.assertEqual(armr.type, "Microsoft.Synapse/workspaces")
+
+    def test_arm_resource_syn_credential(self):
+
+        name = "MyResourceName"
+        properties = {"activities": [1, 2], "foo": "bar"}
+
+        dep = AzDependency("MyResourceName", "MyTypeReference")
+
+        armr = ArmSynCredential(name=name, properties=properties)
+
+        armr.add_dep(dep)
+
+        self.assertEqual(armr.name, name)
+        self.assertEqual(armr.properties, properties)
+        self.assertListEqual(armr.depends_on, [dep])
+        self.assertEqual(armr.api_version, "2019-06-01-preview")
+        self.assertEqual(armr.__resource_type__, "credentials")
+        self.assertEqual(armr.type, "Microsoft.Synapse/workspaces")
+
+    def test_arm_resource_syn_trigger(self):
+
+        name = "MyResourceName"
+        properties = {"activities": [1, 2], "foo": "bar"}
+
+        dep = AzDependency("MyResourceName", "MyTypeReference")
+
+        armr = ArmSynTrigger(name=name, properties=properties)
+
+        armr.add_dep(dep)
+
+        self.assertEqual(armr.name, name)
+        self.assertEqual(armr.properties, properties)
+        self.assertListEqual(armr.depends_on, [dep])
+        self.assertEqual(armr.api_version, "2019-06-01-preview")
+        self.assertEqual(armr.__resource_type__, "triggers")
+        self.assertEqual(armr.type, "Microsoft.Synapse/workspaces")
+
+    def test_arm_resource_syn_linkedservice(self):
+
+        name = "MyResourceName"
+        properties = {"activities": [1, 2], "foo": "bar"}
+
+        dep = AzDependency("MyResourceName", "MyTypeReference")
+
+        armr = ArmSynLinkedService(name=name, properties=properties)
+
+        armr.add_dep(dep)
+
+        self.assertEqual(armr.name, name)
+        self.assertEqual(armr.properties, properties)
+        self.assertListEqual(armr.depends_on, [dep])
+        self.assertEqual(armr.api_version, "2019-06-01-preview")
+        self.assertEqual(armr.__resource_type__, "linkedServices")
+        self.assertEqual(armr.type, "Microsoft.Synapse/workspaces")
+
+    def test_arm_resource_syn_pipeline(self):
+
+        name = "MyResourceName"
+        properties = {"activities": [1, 2], "foo": "bar"}
+
+        dep = AzDependency("MyResourceName", "MyTypeReference")
+
+        armr = ArmSynPipeline(name=name, properties=properties)
+
+        armr.add_dep(dep)
+
+        self.assertEqual(armr.name, name)
+        self.assertEqual(armr.properties, properties)
+        self.assertListEqual(armr.depends_on, [dep])
+        self.assertEqual(armr.api_version, "2019-06-01-preview")
+        self.assertEqual(armr.__resource_type__, "pipelines")
+        self.assertEqual(armr.type, "Microsoft.Synapse/workspaces")
+
+    def test_arm_resource_syn_resource(self):
+
+        name = "MyResourceName"
+        properties = {"activities": [1, 2], "foo": "bar"}
+
+        dep = AzDependency("MyResourceName", "MyTypeReference")
+
+        armr = ArmSynPipeline(name=name, properties=properties)
+
+        armr.add_dep(dep)
+
+        self.assertEqual(armr.name, name)
+        self.assertEqual(armr.properties, properties)
+        self.assertListEqual(armr.depends_on, [dep])
+        self.assertEqual(armr.api_version, "2019-06-01-preview")
+        self.assertEqual(armr.__resource_type__, "pipelines")
+        self.assertEqual(armr.type, "Microsoft.Synapse/workspaces")
+
     def test_arm_resource_creation(self):
 
         name = "MyResourceName"
@@ -26,6 +152,7 @@ class ArmTests(TestCase):
         self.assertListEqual(armr.depends_on, [dep])
         self.assertEqual(armr.api_version, "2019-06-01-preview")
         self.assertEqual(armr.type, "")
+        self.assertEqual(armr.__resource_type__, "_INVALID_")
 
     def test_arm_resource_equality(self):
         name = "MyResourceName"

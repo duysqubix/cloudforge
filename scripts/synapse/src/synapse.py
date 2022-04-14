@@ -81,6 +81,15 @@ class SyntoArmModule:
                 armInstance = armObj(name=resource.name,
                                      properties=resource.properties,
                                      workspace_name="")
+
+            elif objname == "SynDataset":
+                armInstance = armObj(name=resource.name,
+                                     properties=resource.properties,
+                                     workspace_name="")
+            elif objname == "SynNotebook":
+                armInstance = armObj(name=resource.name,
+                                     properties=resource.properties,
+                                     workspace_name="")
             #################################################################
             if armInstance is None:
                 raise ValueError("Resource of type: %s not implemented" %
@@ -108,14 +117,16 @@ class SynResource(AzResource, SyntoArmModule):
         self.deptracker: List[AzDependency] = list()
         super().__init__(name, properties)
 
-    def populate_dependencies(self, data=None):
+        self._ctn = 0
+
+    def populate_dependencies(self):
+        self.deptracker.clear()
+        return self._populate_dependencies(data=self.properties)
+
+    def _populate_dependencies(self, data):
         """
         Identifies dependencies on on a resource
         """
-        if data is None:
-            self.deptracker.clear()
-            data = self.properties
-
         if isinstance(data, dict):
             if "type" in data.keys() and "referenceName" in data.keys():
                 type_ = data["type"]
@@ -129,13 +140,25 @@ class SynResource(AzResource, SyntoArmModule):
                 self.deptracker.append(dep)
             else:
                 for _, v in data.items():
-                    self.populate_dependencies(v)
+                    self._populate_dependencies(v)
 
         elif isinstance(data, list):
             for elem in data:
-                self.populate_dependencies(elem)
+                self._populate_dependencies(elem)
         else:
             return
+
+
+class SynNotebook(SynResource):
+    """
+    Object representing a spark notebook resource
+    """
+
+
+class SynDataset(SynResource):
+    """
+    Object representing a synapse Dataset resource
+    """
 
 
 class SynCredential(SynResource):

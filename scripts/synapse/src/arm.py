@@ -76,11 +76,29 @@ class ArmSynResource(ArmResource):
         self.type = "Microsoft.Synapse/workspaces"
 
 
+class ArmSynNotebook(ArmSynResource):
+    """
+    Object class representing an ARM Synapse Notebook Resource
+    """
+    __resource_type__ = "notebooks"
+
+    # dependsOns are empty for Synapse Notebooks in ARM
+    def add_dep(self, *deps: AzDependency):
+        pass
+
+
+class ArmSynDataset(ArmSynResource):
+    """
+    Object class representing an ARM Synapse Dataset Resource
+    """
+    __resource_type__ = "datasets"
+
+
 class ArmSynCredential(ArmSynResource):
     """
     Object class representing an ARM Synapse Credential Resource
     """
-    __resource_type__ = ""
+    __resource_type__ = "credentials"
 
 
 class ArmSynTrigger(ArmSynResource):

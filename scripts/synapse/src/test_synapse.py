@@ -7,6 +7,37 @@ import json
 
 class SynapseTests(TestCase):
 
+    def test_null_in_json(self):
+        """Test if null parses correctly"""
+
+        sample = {
+            "name": "MyResource",
+            "properties": {
+                "dataset": {
+                    "referenceName": "MyDataset",
+                    "type": "DatasetReference"
+                },
+                "other": {
+                    "linkedService": {
+                        "type": "LinkedServiceReference",
+                        "referenceName": "MyLinkedService"
+                    }
+                },
+                "nullField": None
+            }
+        }
+
+        azr = SynResource(sample)
+        azr.populate_dependencies()
+        want = [
+            AzDependency("MyDataset", "DatasetReference"),
+            AzDependency("MyLinkedService", "LinkedServiceReference")
+        ]
+
+        got = azr.deptracker
+
+        self.assertListEqual(want, got)
+
     def test_populate_dependencies_duplicate(self):
         "Test duplicate dependencies on a resource"
 
