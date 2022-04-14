@@ -29,7 +29,6 @@ if __name__ == '__main__':
                 cls = eval("Syn" + rtype.capitalize())
                 res = cls(jdata)
 
-                #                print("Processing: ", jfile.name)
                 res.populate_dependencies()
 
                 armr = res.convert_to_arm(res)

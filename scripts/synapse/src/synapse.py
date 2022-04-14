@@ -1,6 +1,9 @@
+import json
+from typing import Any, List, Optional
+from yapf.yapflib.yapf_api import FormatCode
+
 from src import RESOURCE_MAP, AzResource, AzDependency
 from src.arm import *
-from typing import Any, List, Optional
 
 
 class SynManager:
@@ -87,9 +90,13 @@ class SyntoArmModule:
                                      properties=resource.properties,
                                      workspace_name="")
             elif objname == "SynNotebook":
+                # preformat code
+                resource.format_code()
+
                 armInstance = armObj(name=resource.name,
                                      properties=resource.properties,
                                      workspace_name="")
+
             #################################################################
             if armInstance is None:
                 raise ValueError("Resource of type: %s not implemented" %
@@ -153,6 +160,42 @@ class SynNotebook(SynResource):
     """
     Object representing a spark notebook resource
     """
+
+    def init(self):
+        try:
+            self.default_language = self.properties['metadata'][
+                'language_info']['name']
+        except KeyError:
+            self.default_language = "python"
+
+    def format_code(self):
+        print(self.name, self.properties.keys())
+        for idx, cell in enumerate(self.properties['cells']):
+            code_lst = cell['source']
+            code_str = "\n".join(
+                [s.replace('\n', '').replace('\r', '') for s in code_lst])
+            code_fmt = ""
+
+            if "%%" not in code_str:
+                if (self.default_language == 'python'):
+                    code_fmt = self._format_python_code(code_str)
+
+                else:
+                    raise NotImplementedError(
+                        "formatting of language: %s not supported" %
+                        self.default_language)
+                code_fmt_lst = [
+                    line + "\r\n" for line in code_fmt.split('\n')
+                    if line != ""
+                ]
+                self.properties['cells'][idx]['source'] = code_fmt_lst
+
+    def _format_python_code(self, code: str) -> str:
+
+        fmt_code, changed = FormatCode(code)
+        if not changed:
+            return code
+        return fmt_code
 
 
 class SynDataset(SynResource):

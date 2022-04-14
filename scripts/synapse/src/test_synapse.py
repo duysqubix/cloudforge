@@ -7,6 +7,32 @@ import json
 
 class SynapseTests(TestCase):
 
+    def setUp(self):
+        self.maxDiff = None
+
+    def test_notebook_format_python_code_block(self):
+        sample = {
+            "name": "MyNotebook",
+            "properties": {
+                "cells": [
+                    {
+                        "cell_type": "code",
+                        "source": [
+                            "f ( a = 1, b = 2 )\r\n",
+                        ],
+                        "execution_count": 1
+                    },
+                ]
+            }
+        }
+
+        want = ["f(a=1, b=2)\r\n"]
+
+        notebook = SynNotebook(sample)
+        notebook.format_code()
+        got = notebook.properties['cells'][0]['source']
+        self.assertListEqual(got, want)
+
     def test_null_in_json(self):
         """Test if null parses correctly"""
 
@@ -248,7 +274,10 @@ class SynapseTests(TestCase):
             res = cl({
                 "name": "MyName_%s" % idx,
                 "properties": {
-                    "activities": {}
+                    "activities": {},
+                    "cells": [{
+                        "source": ["my\r\n", "super\r\n", "code\r\n"]
+                    }]
                 },
                 "activities": {}
             })
