@@ -277,11 +277,11 @@ class SynapseTests(TestCase):
         }
         """
         pipeline = SynPipeline(json.loads(data))
-        manager = SynManager()
+        manager = SynManager(workspace_name="myworkspace")
 
-        manager.add_pipeline(pipeline)
+        manager.add_resource('pipeline', json.loads(data))
 
-        assert pipeline == manager.resources[SynPipeline][0]
+        assert pipeline == manager.resources["pipeline"][0]
 
     def test_pipeline_not_equal(self):
         "Test pipeline resource objects are not equal"

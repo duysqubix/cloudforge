@@ -45,6 +45,16 @@ RESOURCE_MAP = {
     "SynIntegrationRuntime": "ArmSynIntegrationRuntime"
 }
 
+SYN_RESOURCE_TO_OBJ = {
+    "pipeline": "SynPipeline",
+    "linkedService": "SynLinkedService",
+    "credential": "SynCredential",
+    "trigger": "SynTrigger",
+    "dataset": "SynDataset",
+    "notebook": "SynNotebook",
+    "integrationRuntime": "SynIntegrationRuntime"
+}
+
 ARM_VERSION = "2019-06-01-preview"
 ARM_SCHEMA = "http://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#"
 

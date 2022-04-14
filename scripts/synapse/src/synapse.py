@@ -2,7 +2,7 @@ import logging
 from typing import Any, List, Optional
 from yapf.yapflib.yapf_api import FormatCode
 
-from src import RESOURCE_MAP, VALID_CELL_MAGIC_COMMANDS, AzResource, AzDependency, VALID_LINE_MAGIC_COMMANDS
+from src import RESOURCE_MAP, SYN_RESOURCE_TO_OBJ, VALID_CELL_MAGIC_COMMANDS, AzResource, AzDependency, VALID_LINE_MAGIC_COMMANDS
 
 from src.arm import *
 
@@ -10,31 +10,26 @@ from src.arm import *
 class SynManager:
     __err_invalid_instance = "Invalid instance, expected {}, got {}"
 
-    def __init__(self):
-        self.resources: dict = {SynPipeline: []}
+    def __init__(self, workspace_name):
+        self.workspace_name = workspace_name
+        self.resources = {k: [] for k in SYN_RESOURCE_TO_OBJ.keys()}
 
-    # self.credential = list()
-    # self.dataset = list()
-    # self.integrationRuntime = list()
-    # self.linkedService = list()
-    # self.pipeline: List[SynPipeline] = list()
-    # self.trigger = list()
+    def add_resource(self, rtype: str, jdata: dict):
+        cls = eval(SYN_RESOURCE_TO_OBJ[rtype])
 
-    def _validate_instance(self, obj, cls):
-        if not isinstance(obj, cls):
-            raise ValueError(self.__err_invalid_instance.format(
-                cls, type(obj)))
-
-    def _add_resource(self, obj: Any, obj_type: Any):
-        self._validate_instance(obj, obj_type)
-        self.resources[obj_type].append(obj)
-
-    def add_pipeline(self, pipeline):
-        self._add_resource(pipeline, SynPipeline)
+        obj = cls(jdata)
+        obj.populate_dependencies()
+        self.resources[rtype].append(obj)
 
     def convert_to_arm_objs(self) -> ArmTemplate:
-        "converts all internal objects to a valid ArmTemplate Object"
-        return ArmTemplate()
+        armt = SynArmTemplate(workspace_name=self.workspace_name)
+        for rtype, res_lst in self.resources.items():
+            print(f"Converting.......{rtype}")
+            for res in res_lst:
+                res.populate_dependencies()
+                armr = res.convert_to_arm(res)
+                armt.add_resource(armr)
+        return armt
 
 
 class SyntoArmModule:
