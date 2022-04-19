@@ -1,5 +1,5 @@
 import logging
-from typing import Any, List, Optional
+from typing import List, Optional
 from yapf.yapflib.yapf_api import FormatCode
 
 from src import RESOURCE_MAP, SYN_RESOURCE_TO_OBJ, VALID_CELL_MAGIC_COMMANDS, AzResource, AzDependency, VALID_LINE_MAGIC_COMMANDS
@@ -8,7 +8,6 @@ from src.arm import *
 
 
 class SynManager:
-    __err_invalid_instance = "Invalid instance, expected {}, got {}"
 
     def __init__(self, workspace_name):
         self.workspace_name = workspace_name
@@ -39,9 +38,6 @@ class SyntoArmModule:
 
     class ConversionError(Exception):
         pass
-
-    def __init__(self):
-        super().__init__()
 
     def convert_to_arm(self, resource) -> ArmResource:
         if not issubclass(type(resource), SynResource):
@@ -209,10 +205,9 @@ class SynNotebook(SynResource):
             # checks to see if cell code is written not in default_language
             # precense of magic cell block indicates this
             if not self._magic_command_cell(code_str):
-
                 code_fmt = ""
 
-                if (self.default_language == 'python'):
+                if self.default_language == 'python':
                     code_fmt = self._format_python_code(code_str)
 
                 else:
