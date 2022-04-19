@@ -136,7 +136,13 @@ class SynResource(AzResource, SyntoArmModule):
                 type_ = data["type"]
                 name = data["referenceName"]
 
-                dep = AzDependency(name, type_)
+                ignore = False
+
+                if any(
+                    [x in type_.lower() for x in ('sqlpool', 'bigdatapool')]):
+                    ignore = True
+
+                dep = AzDependency(name, type_, ignore=ignore)
 
                 # if any dep already exists.. return this recursive step
                 if any([(x == dep) for x in self.deptracker]):

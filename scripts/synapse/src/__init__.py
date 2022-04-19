@@ -15,9 +15,10 @@ class AzResource:
 
 class AzDependency:
 
-    def __init__(self, name, type):
+    def __init__(self, name, type, ignore=False):
         self.name = name
         self.type = type
+        self.ignore = ignore
 
     def formatARM(self, prefix="", suffix=""):
         t = (self.type[0].lower() + self.type[1:]).replace("Reference",
@@ -26,7 +27,8 @@ class AzDependency:
 
     def __eq__(self, other):
         return (self.name == other.name) and \
-               (self.type == other.type)
+               (self.type == other.type) and \
+               (self.ignore == other.ignore)
 
     def __neq__(self, other):
         return not self.__eq__(other)

@@ -9,6 +9,12 @@ class SynapseTests(TestCase):
 
     def setUp(self):
         self.maxDiff = None
+    
+    def test_ignore_dependency(self):
+        dep1 = AzDependency("MyDep1", "LinkedServiceReference", ignore=False)
+        dep2 = AzDependency("MyDep2", "LinkedServiceReference", ignore=True)
+
+
 
     def test_notebook_format_python_line_magic_command_ignore_mult_cells(self):
         """Test should ignore the line that is a magic link command"""
@@ -125,6 +131,45 @@ class SynapseTests(TestCase):
         got = azr.deptracker
 
         self.assertListEqual(want, got)
+
+    def test_populate_dependencies_ignored(self):
+        "Tests ignored dependencies on a resource"
+
+        sample = {
+            "name": "MyResource",
+            "properties": {
+                "dataset": {
+                    "referenceName": "MyDataset",
+                    "type": "DatasetReference"
+                },
+                "other": {
+                    "linkedService": {
+                        "type": "SqlPoolReference",
+                        "referenceName": "MySqlPool"
+                    }
+                },
+                "other2": {
+                    "type": "LinkedServiceReference",
+                    "referenceName": "MyLinkedService"
+                },
+                "other3": {
+                    "type": "BigDataPoolReference",
+                    "referenceName": "MyBigPool"
+                }
+            }
+        }
+
+        azr = SynResource(sample)
+        azr.populate_dependencies()
+        want = [
+            AzDependency("MyDataset", "DatasetReference"),
+            AzDependency("MyLinkedService", "LinkedServiceReference")
+        ]
+
+        want = 2 # number of ignored depedencies based on type
+        got = sum(map(lambda x: 1 if x.ignore is True else 0, azr.deptracker))
+
+        self.assertEqual(want, got)
 
     def test_populate_dependencies_duplicate(self):
         "Test duplicate dependencies on a resource"

@@ -312,8 +312,11 @@ class ArmTests(TestCase):
                              properties={"a": 1},
                              workspace_name="")
 
-        syn.add_dep(AzDependency("MyDataset", "DatasetReference"),
-                    AzDependency("MyPipeline", "PipelineReference"))
+        syn.add_dep(
+            AzDependency("MyDataset", "DatasetReference"),
+            AzDependency("MyPipeline", "PipelineReference"),
+            AzDependency("MyBigDataPool", "BigDataPoolReference", ignore=True),
+            AzDependency("MySqlPool", "SqlPoolReference", ignore=True))
 
         template = SynArmTemplate(workspace_name="myWorkspace")
 

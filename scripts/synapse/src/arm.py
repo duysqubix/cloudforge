@@ -42,7 +42,10 @@ class ArmResource(AzResource):
 
     def get_dependencies(self, prefix="") -> List[str]:
         """formats dependencies"""
-        return [dep.formatARM(prefix=prefix) for dep in self.depends_on]
+        return [
+            dep.formatARM(prefix=prefix) for dep in self.depends_on
+            if dep.ignore is False
+        ]
 
     def to_arm_json(self, prefix="") -> dict:
         return {
@@ -53,20 +56,20 @@ class ArmResource(AzResource):
             "dependsOn": self.get_dependencies(prefix=prefix)
         }
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         return (self.type == other.type
                 and all([x in other.depends_on
                          for x in self.depends_on]) and self.name == other.name
                 and self.properties == other.properties)
 
-    def __neq__(self, other):
+    def __neq__(self, other) -> bool:
         return not self.__eq__(other)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "<%s/%s>" % (self.name, len(self.depends_on))
 
     @property
-    def workspace_id(self):
+    def workspace_id(self) -> str:
         return self.type + "/" + self.__resource_type__
 
 
