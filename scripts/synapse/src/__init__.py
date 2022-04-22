@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+
 class AzResource:
     """
     Base object class that represents an azure resource
