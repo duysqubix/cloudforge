@@ -3,11 +3,19 @@ Handles the deployment piece by reading a static deployment file
 and modifiying attributes based on dot notation searching in JSON files
 """
 from __future__ import annotations
-from typing import IO, Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional
 from functools import reduce
 
 import json
-import os
+
+
+def pretty_print_modified_actions(result):
+    for rtype, mods in result.items():
+        print(rtype.upper())
+        for mod in mods:
+            print(mod['name'])
+            print(json.dumps(mod, indent=4))
+            print("*" * 50)
 
 
 class InvalidDotNotation(Exception):
@@ -98,7 +106,6 @@ class SynapseActionTemplate(ActionTemplate):
 
         for rtype, actions in self._map.items():
             resource_dir = wkspace_root + "/" + rtype + "/"
-            ae = ActionExecutioner()
 
             changes[rtype] = []
 
@@ -107,6 +114,8 @@ class SynapseActionTemplate(ActionTemplate):
 
                 with open(filename, 'r+') as f:
                     target = json.load(f)
+
+                    ae = ActionExecutioner()
                     ae.execute(action, target)
 
                     changes[rtype].append(ae.target)
@@ -115,6 +124,7 @@ class SynapseActionTemplate(ActionTemplate):
                         modifiedTarget = ae.target
                         f.truncate(0)
                         json.dump(modifiedTarget, f)
+
         return changes
 
     def __eq__(self, other):
