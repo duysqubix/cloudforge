@@ -7,7 +7,9 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 )
@@ -42,7 +44,15 @@ var synapseCmd = &cobra.Command{
 }
 
 func invokeSynModule(cmd *cobra.Command, args []string) {
-	bin := "bin/synapse"
+	ex, err := os.Executable()
+
+	if err != nil {
+		panic(err)
+	}
+
+	exPath := filepath.Dir(ex)
+	bin := exPath + "/synapse"
+	fmt.Println(bin)
 
 	sub_args := []string{
 		"--dir=" + cmd.Flag("workspace-dir").Value.String(),
