@@ -61,7 +61,6 @@ steps:
         # copy over all module binaries to scripts folder
 
   - task: PublishBuildArtifacts@1
-    condition: eq(variables['Build.SourceBranch'], 'refs/heads/master') # only publish artifacts if this is built from the main branch
     displayName: "Publish binary"
     inputs:
       PathtoPublish: '$(build.artifactstagingdirectory)/ecdeploy/bin'
