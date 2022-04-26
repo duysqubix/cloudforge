@@ -66,6 +66,9 @@ if __name__ == '__main__':
 
     for rtype in valid_resources:
         for jfile in (syn_workspace_dir / rtype).glob("*.json"):
+            if "WorkspaceDefault" in jfile.name:
+                continue
+
             with open(jfile, 'r') as f:
                 jdata = json.load(f)
 
@@ -73,5 +76,5 @@ if __name__ == '__main__':
 
     armt: ArmTemplate = synm.convert_to_arm_objs()
 
-    with open("synampseDeployARM.json", "w") as f:
+    with open("synapseDeployARM.json", "w") as f:
         json.dump(armt.to_arm_json(), f, indent=2)  #type: ignore

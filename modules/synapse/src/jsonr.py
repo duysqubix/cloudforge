@@ -111,7 +111,6 @@ class SynapseActionTemplate(ActionTemplate):
 
             for action in actions:
                 filename = resource_dir + action.name + ".json"
-
                 with open(filename, 'r+') as f:
                     target = json.load(f)
 
