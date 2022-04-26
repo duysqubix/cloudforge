@@ -6,6 +6,8 @@
 
 PY_INSTALLER=$(which pyinstaller)
 
+echo "PY_INSTALLER=${PY_INSTALLER}"
+
 if ~ [ -n ${PY_INSTALLER} ]; then
     echo "PyInstaller not found."
     exit 1
