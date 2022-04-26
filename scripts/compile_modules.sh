@@ -5,6 +5,12 @@
 #
 
 PY_INSTALLER=$(which pyinstaller)
+
+if ~ [ -n ${PY_INSTALLER} ]; then
+    echo "PyInstaller not found."
+    exit 1
+fi
+
 MODULES=("synapse")
 
 for module in ${MODULES[@]}; do
