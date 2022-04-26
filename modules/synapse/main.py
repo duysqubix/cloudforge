@@ -4,13 +4,19 @@ import argparse
 import json
 
 from src.synapse import *
-from src.jsonr import ActionExecutioner, ActionTemplate, SynapseActionTemplate, pretty_print_modified_actions
+from src.jsonr import SynapseActionTemplate, pretty_print_modified_actions
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--dir", help="Path to synapse workspace", required=True)
 parser.add_argument("--config",
                     help="Path to deployment configuration file",
                     required=True)
+
+parser.add_argument("--workspace-name",
+                    "-n",
+                    help="The name of the workspace",
+                    required=True)
+
 parser.add_argument("--dry-run",
                     help="Performs a dry run of program",
                     action="store_true")
@@ -20,6 +26,10 @@ parser.add_argument("--debug",
                     action="store_true")
 
 if __name__ == '__main__':
+
+    # Read Synapse JSON files and convert to dynamic format
+    # using deployment-config.json file
+
     args = parser.parse_args()
 
     syn_workspace_dir = Path(args.dir)
@@ -45,3 +55,23 @@ if __name__ == '__main__':
 
     if args.debug is True:
         pretty_print_modified_actions(result)
+
+    # transform Synapse JSON to ARM file
+
+    synm = SynManager(workspace_name=args.workspace_name)
+    valid_resources = [
+        "linkedService", "credential", "trigger", "dataset", "notebook",
+        "integrationRuntime"
+    ]
+
+    for rtype in valid_resources:
+        for jfile in (syn_workspace_dir / rtype).glob("*.json"):
+            with open(jfile, 'r') as f:
+                jdata = json.load(f)
+
+                synm.add_resource(rtype, jdata)
+
+    armt: ArmTemplate = synm.convert_to_arm_objs()
+
+    with open("synampseDeployARM.json", "w") as f:
+        json.dump(armt.to_arm_json(), f, indent=2)  #type: ignore
