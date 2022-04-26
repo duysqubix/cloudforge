@@ -29,15 +29,23 @@ steps:
         go test ./... -v 
 
   - task: Bash@3
-    displayName: "Compile source code"
+    displayName: "Compiling Deployment Engine"
     inputs:
       targetType: 'inline'
       workingDirectory: '$(build.artifactstagingdirectory)/ecdeploy/'
       script: |
-        make version && \
-        mkdir -p $(build.artifactstagingdirectory)/ecdeploy/bin
+        go build . && \
+        mkdir -p $(build.artifactstagingdirectory)/ecdeploy/bin && \
         mv ec $(build.artifactstagingdirectory)/ecdeploy/bin
   
+  - task: Bash@3
+    displayName: "Compiling Modules"
+    inputs:
+      targetType: 'inline'
+      workingDirectory: "$(build.artifactstagingdirectory)/ecdeploy/"
+      script:  bash ./scripts/compile_modules.sh
+
+
   - task: Bash@3
     displayName: "Copy Over useful scripts"
     inputs:
