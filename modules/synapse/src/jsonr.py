@@ -120,9 +120,9 @@ class SynapseActionTemplate(ActionTemplate):
 
                     changes[rtype].append(ae.target)
 
-                    if inplace:
+                if inplace:
+                    with open(filename, 'w') as f:
                         modifiedTarget = ae.target
-                        f.truncate(0)
                         json.dump(modifiedTarget, f)
 
         return changes

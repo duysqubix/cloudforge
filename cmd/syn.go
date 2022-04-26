@@ -15,12 +15,16 @@ import (
 var (
 	workspacePath string
 	configPath    string
+	debug         bool
+	dryRun        bool
 )
 
 func init() {
 
 	synapseCmd.Flags().StringVarP(&workspacePath, "workspace-dir", "d", "", "Path to workspace JSON files")
 	synapseCmd.Flags().StringVarP(&configPath, "config", "c", "", "Path to configuration deployment file")
+	synapseCmd.Flags().BoolVar(&debug, "debug", false, "Output debug information")
+	synapseCmd.Flags().BoolVar(&dryRun, "dry-run", false, "Performs a dry run")
 
 	synapseCmd.MarkFlagRequired("workspace-dir")
 	synapseCmd.MarkFlagRequired("config")
@@ -37,10 +41,19 @@ var synapseCmd = &cobra.Command{
 func invokeSynModule(cmd *cobra.Command, args []string) {
 	bin := "bin/synapse"
 
-	dirpath := "--dir=" + cmd.Flag("workspace-dir").Value.String()
-	configPath := "--config=" + cmd.Flag("config").Value.String()
+	sub_args := []string{
+		"--dir=" + cmd.Flag("workspace-dir").Value.String(),
+		"--config=" + cmd.Flag("config").Value.String(),
+	}
 
-	mod := exec.Command(bin, dirpath, configPath)
+	if debug == true {
+		sub_args = append(sub_args, "--debug")
+	}
+
+	if dryRun == true {
+		sub_args = append(sub_args, "--dry-run")
+	}
+	mod := exec.Command(bin, sub_args...)
 	stdout, err := mod.Output()
 
 	if err != nil {

@@ -11,6 +11,13 @@ parser.add_argument("--dir", help="Path to synapse workspace", required=True)
 parser.add_argument("--config",
                     help="Path to deployment configuration file",
                     required=True)
+parser.add_argument("--dry-run",
+                    help="Performs a dry run of program",
+                    action="store_true")
+
+parser.add_argument("--debug",
+                    help="outputs debug information",
+                    action="store_true")
 
 if __name__ == '__main__':
     args = parser.parse_args()
@@ -28,25 +35,13 @@ if __name__ == '__main__':
     config = json.load(open(config_file))
     syn_action_template = SynapseActionTemplate(config)
 
+    replace = True
+
+    if args.dry_run is True:
+        replace = False
+
     result = syn_action_template.process_synapse_workspace(
-        str(syn_workspace_dir))
-    pretty_print_modified_actions(result)
-#    valid_resources = [
-#        "pipeline", "linkedService", "credential", "trigger", "dataset",
-#        "notebook", "integrationRuntime"
-#    ]
-#
-#    mainDir = Path(__file__).parent / ".syntest/"
-#    synm = SynManager(workspace_name="ec360-syn-main-dev")
-#
-#    for rtype in valid_resources:
-#        for jfile in (mainDir / rtype).glob("*.json"):
-#            with open(jfile, 'r') as f:
-#                jdata = json.load(f)
-#
-#                synm.add_resource(rtype, jdata)
-#    armt = synm.convert_to_arm_objs()
-#
-#    with open("exampleARM.json", 'w') as f:
-#        json.dump(armt.to_arm_json(), f, indent=2)
-#        #json.dump(armt.to_arm_json(), f, indent=2))
+        str(syn_workspace_dir), inplace=replace)
+
+    if args.debug is True:
+        pretty_print_modified_actions(result)
