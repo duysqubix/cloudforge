@@ -66,7 +66,7 @@ if __name__ == '__main__':
     synm = SynManager(workspace_name=args.workspace_name)
     valid_resources = [
         "linkedService", "credential", "trigger", "dataset", "notebook",
-        "integrationRuntime"
+        "integrationRuntime", "pipeline"
     ]
 
     for rtype in valid_resources:
