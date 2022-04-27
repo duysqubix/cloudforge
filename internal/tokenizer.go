@@ -29,15 +29,17 @@ type Tokenizer struct {
 	tree     *map[string]string
 	rootDir  *pathlib.Path
 	destPath *pathlib.Path
+	ext      string
 }
 
 // create new tokenizer object
-func TokenizerNew(rootDir *pathlib.Path) *Tokenizer {
+func TokenizerNew(rootDir *pathlib.Path, ext string) *Tokenizer {
 
 	return &Tokenizer{
 		tree:     &map[string]string{},
 		rootDir:  rootDir,
 		destPath: pathlib.NewPathAfero("/", afero.NewMemMapFs()),
+		ext:      ext,
 	}
 }
 
@@ -56,18 +58,17 @@ func (t *Tokenizer) ReadFile(path *pathlib.Path) {
 // encountered. A directory will cause the method to be
 // invoked again. Any file encountered that passes the conditions
 // will be read and file contents stored within internal `Tokenizer.tree`
-func (t *Tokenizer) traverseDirectory(path *pathlib.Path) {
+func (t *Tokenizer) traverseDirectory(path *pathlib.Path, ext string) {
 	matches, _ := path.Glob("*")
 
 	for _, match := range matches {
 		is_dir, _ := match.IsDir()
 		if is_dir && match.Name() != "sandbox" {
-			t.traverseDirectory(match)
+			t.traverseDirectory(match, ext)
 		}
 
 		is_file, _ := match.IsFile()
-		if is_file && (strings.Contains(filepath.Ext(match.Name()), ".tf") ||
-			strings.Contains(filepath.Ext(match.Name()), ".json")) {
+		if is_file && (strings.Contains(filepath.Ext(match.Name()), ext)) {
 			absolute_path := match.String()
 			f_content, err := match.ReadFile()
 
@@ -83,7 +84,7 @@ func (t *Tokenizer) traverseDirectory(path *pathlib.Path) {
 // defined in Tokenizer.RootDir()
 func (t *Tokenizer) ReadRoot() {
 	root := t.RootDir()
-	t.traverseDirectory(root)
+	t.traverseDirectory(root, t.ext)
 }
 
 // combines both validation and replacement of tokens

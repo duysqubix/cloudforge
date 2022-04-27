@@ -201,7 +201,7 @@ func GetConfigSettingsForEnv(env string) *internal.ConfigFile {
 }
 
 func baseTerraformSetup(env string) *internal.AzureTerraform {
-	tokenizer := internal.TokenizerNew(pathlib.NewPathAfero(projDir, afero.NewOsFs()))
+	tokenizer := internal.TokenizerNew(pathlib.NewPathAfero(projDir, afero.NewOsFs()), ".tf")
 	tokenizer.ReadRoot()
 
 	config := GetConfigSettingsForEnv(env)
@@ -216,7 +216,7 @@ func baseTerraformSetup(env string) *internal.AzureTerraform {
 	tokenizer.ReplaceAndValidateTokens(tokens)
 	tmp_dir := pathlib.NewPathAfero(internal.TMPDIR_PATH, afero.NewOsFs())
 
-	tokenizer.DumpTo(tmp_dir, true)
+	tmp_dir = tokenizer.DumpTo(tmp_dir, true)
 	tf := internal.NewAzureTerraformHandler(config, tmp_dir)
 	return tf
 }

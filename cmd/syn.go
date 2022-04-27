@@ -86,7 +86,7 @@ func invokeSynModule(cmd *cobra.Command, args []string) {
 	}
 
 	config := GetConfigSettingsForEnv(cmd.Flag("env").Value.String())
-	tokenizer := internal.TokenizerNew(pathlib.NewPathAfero(workspacePath, afero.NewOsFs()))
+	tokenizer := internal.TokenizerNew(pathlib.NewPathAfero(workspacePath, afero.NewOsFs()), ".json")
 
 	outputArmTempate := pathlib.NewPathAfero(cmd.Flag("output").Value.String(), afero.NewOsFs())
 	tokenizer.ReadFile(outputArmTempate)
