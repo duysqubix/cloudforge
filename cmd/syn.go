@@ -104,7 +104,7 @@ func invokeSynModule(cmd *cobra.Command, args []string) {
 	tokenizer.ReplaceAndValidateTokens(tokens)
 
 	tmp_dir := pathlib.NewPathAfero(internal.TMPDIR_ROOT+"/synapseArm", afero.NewOsFs())
-	tokenizer.DumpTo(tmp_dir, true)
+	tokenizer.DumpTo(tmp_dir, false)
 
 	fmt.Print(string(stdout))
 
