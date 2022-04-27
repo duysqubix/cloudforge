@@ -18,6 +18,7 @@ var (
 	workspacePath string
 	workspaceName string
 	configPath    string
+	destPath      string
 	debug         bool
 	dryRun        bool
 )
@@ -26,6 +27,7 @@ func init() {
 
 	synapseCmd.Flags().StringVarP(&workspacePath, "workspace-dir", "d", "", "Path to workspace JSON files")
 	synapseCmd.Flags().StringVarP(&workspaceName, "workspace-name", "n", "", "Name of the workspace")
+	synapseCmd.Flags().StringVarP(&destPath, "output", "o", "", "Path to write ARM template")
 	synapseCmd.Flags().StringVarP(&configPath, "config", "c", "", "Path to configuration deployment file")
 	synapseCmd.Flags().BoolVar(&debug, "debug", false, "Output debug information")
 	synapseCmd.Flags().BoolVar(&dryRun, "dry-run", false, "Performs a dry run")
@@ -33,7 +35,7 @@ func init() {
 	synapseCmd.MarkFlagRequired("workspace-dir")
 	synapseCmd.MarkFlagRequired("workspace-name")
 	synapseCmd.MarkFlagRequired("config")
-
+	synapseCmd.MarkFlagRequired("output")
 }
 
 var synapseCmd = &cobra.Command{
@@ -58,6 +60,7 @@ func invokeSynModule(cmd *cobra.Command, args []string) {
 		"--dir=" + cmd.Flag("workspace-dir").Value.String(),
 		"--config=" + cmd.Flag("config").Value.String(),
 		"--workspace-name=" + cmd.Flag("workspace-name").Value.String(),
+		"--output=" + cmd.Flag("output").Value.String(),
 	}
 
 	if debug == true {

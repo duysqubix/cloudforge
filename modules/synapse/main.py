@@ -17,6 +17,11 @@ parser.add_argument("--workspace-name",
                     help="The name of the workspace",
                     required=True)
 
+parser.add_argument("--output",
+                    "-o",
+                    help="The destination of the ARM output template",
+                    required=True)
+
 parser.add_argument("--dry-run",
                     help="Performs a dry run of program",
                     action="store_true")
@@ -76,5 +81,7 @@ if __name__ == '__main__':
 
     armt: ArmTemplate = synm.convert_to_arm_objs()
 
-    with open("synapseDeployARM.json", "w") as f:
+    dest_arm_path = Path(args.output)
+
+    with open(dest_arm_path, "w") as f:
         json.dump(armt.to_arm_json(), f, indent=2)  #type: ignore
