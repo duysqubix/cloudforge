@@ -13,7 +13,8 @@ import (
 var logger = logging.MustGetLogger("utils")
 
 // Directory where formatted terraform files will be dumped to
-const TMPDIR_PATH string = "/tmp/.terraform-go"
+const TMPDIR_ROOT string = "/tmp"
+const TMPDIR_PATH string = TMPDIR_ROOT + "/.terraform-go"
 
 // Returns executable path and returns a pathlib object
 func GetExecutablePath() *pathlib.Path {

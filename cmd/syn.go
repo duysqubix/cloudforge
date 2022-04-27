@@ -11,7 +11,10 @@ import (
 	"os/exec"
 	"path/filepath"
 
+	"github.com/chigopher/pathlib"
+	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
+	"github.com/vorys-econtrol/ec/internal"
 )
 
 var (
@@ -21,6 +24,7 @@ var (
 	destPath      string
 	debug         bool
 	dryRun        bool
+	env           string
 )
 
 func init() {
@@ -31,11 +35,13 @@ func init() {
 	synapseCmd.Flags().StringVarP(&configPath, "config", "c", "", "Path to configuration deployment file")
 	synapseCmd.Flags().BoolVar(&debug, "debug", false, "Output debug information")
 	synapseCmd.Flags().BoolVar(&dryRun, "dry-run", false, "Performs a dry run")
+	synapseCmd.Flags().StringVarP(&env, "env", "e", "", "Targeted Environment")
 
 	synapseCmd.MarkFlagRequired("workspace-dir")
 	synapseCmd.MarkFlagRequired("workspace-name")
 	synapseCmd.MarkFlagRequired("config")
 	synapseCmd.MarkFlagRequired("output")
+	synapseCmd.MarkFlagRequired("env")
 }
 
 var synapseCmd = &cobra.Command{
@@ -79,6 +85,26 @@ func invokeSynModule(cmd *cobra.Command, args []string) {
 		return
 
 	}
+
+	config := GetConfigSettingsForEnv(cmd.Flag("env").Value.String())
+	tokenizer := internal.TokenizerNew(pathlib.NewPathAfero(workspacePath, afero.NewOsFs()))
+
+	outputArmTempate := pathlib.NewPathAfero(cmd.Flag("output").Value.String(), afero.NewOsFs())
+	tokenizer.ReadFile(outputArmTempate)
+
+	fmt.Println("Workspace path: ", workspacePath, tokenizer.GetTree())
+	clientId := config.Get("ARM_CLIENT_ID")
+	clientSecret := config.Get("ARM_CLIENT_SECRET")
+	tenantId := config.Get("ARM_TENANT_ID")
+	vaultName := config.Get("KEY_VAULT_NAME")
+
+	sp := internal.NewServicePrincipal(&clientId, &clientSecret, &tenantId)
+	tokens := internal.GetKeyVaultSecrets(&vaultName, sp)
+
+	tokenizer.ReplaceAndValidateTokens(tokens)
+
+	tmp_dir := pathlib.NewPathAfero(internal.TMPDIR_ROOT+"/synapseArm", afero.NewOsFs())
+	tokenizer.DumpTo(tmp_dir, true)
 
 	fmt.Print(string(stdout))
 

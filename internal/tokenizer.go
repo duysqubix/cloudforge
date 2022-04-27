@@ -41,6 +41,17 @@ func TokenizerNew(rootDir *pathlib.Path) *Tokenizer {
 	}
 }
 
+//Directly add file to tree
+//has potential to overwrite existing key, should it exist by chance
+func (t *Tokenizer) ReadFile(path *pathlib.Path) {
+	f_content, err := path.ReadFile()
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	(*t.tree)[path.String()] = string(f_content)
+}
+
 // recursivly traverses a directory and reads the objects
 // encountered. A directory will cause the method to be
 // invoked again. Any file encountered that passes the conditions
@@ -55,7 +66,8 @@ func (t *Tokenizer) traverseDirectory(path *pathlib.Path) {
 		}
 
 		is_file, _ := match.IsFile()
-		if is_file && strings.Contains(filepath.Ext(match.Name()), ".tf") {
+		if is_file && (strings.Contains(filepath.Ext(match.Name()), ".tf") ||
+			strings.Contains(filepath.Ext(match.Name()), ".json")) {
 			absolute_path := match.String()
 			f_content, err := match.ReadFile()
 

@@ -170,8 +170,7 @@ func deployProd(cmd *cobra.Command, args []string) {
 
 //############################################################
 
-func baseTerraformSetup(env string) *internal.AzureTerraform {
-	fmt.Println(projDir)
+func GetConfigSettingsForEnv(env string) *internal.ConfigFile {
 	switch env {
 	case "dev":
 		cfgFile = projDir + "/.env.dev"
@@ -198,9 +197,16 @@ func baseTerraformSetup(env string) *internal.AzureTerraform {
 	}
 
 	config.ReadAndParse() // read either from file or os.Env
+
+	return config
+}
+
+func baseTerraformSetup(env string) *internal.AzureTerraform {
+	fmt.Println("Project DirectorY: ", projDir)
 	tokenizer := internal.TokenizerNew(pathlib.NewPathAfero(projDir, afero.NewOsFs()))
 	tokenizer.ReadRoot()
 
+	config := GetConfigSettingsForEnv(env)
 	clientId := config.Get("ARM_CLIENT_ID")
 	clientSecret := config.Get("ARM_CLIENT_SECRET")
 	tenantId := config.Get("ARM_TENANT_ID")
