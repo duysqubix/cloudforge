@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/chigopher/pathlib"
@@ -202,7 +201,6 @@ func GetConfigSettingsForEnv(env string) *internal.ConfigFile {
 }
 
 func baseTerraformSetup(env string) *internal.AzureTerraform {
-	fmt.Println("Project DirectorY: ", projDir)
 	tokenizer := internal.TokenizerNew(pathlib.NewPathAfero(projDir, afero.NewOsFs()))
 	tokenizer.ReadRoot()
 

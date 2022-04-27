@@ -77,7 +77,6 @@ func invokeSynModule(cmd *cobra.Command, args []string) {
 		sub_args = append(sub_args, "--dry-run")
 	}
 	mod := exec.Command(bin, sub_args...)
-	fmt.Println(mod)
 	stdout, err := mod.Output()
 
 	if err != nil {
@@ -92,7 +91,6 @@ func invokeSynModule(cmd *cobra.Command, args []string) {
 	outputArmTempate := pathlib.NewPathAfero(cmd.Flag("output").Value.String(), afero.NewOsFs())
 	tokenizer.ReadFile(outputArmTempate)
 
-	fmt.Println("Workspace path: ", workspacePath, tokenizer.GetTree())
 	clientId := config.Get("ARM_CLIENT_ID")
 	clientSecret := config.Get("ARM_CLIENT_SECRET")
 	tenantId := config.Get("ARM_TENANT_ID")
