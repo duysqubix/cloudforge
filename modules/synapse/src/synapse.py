@@ -142,6 +142,11 @@ class SynResource(AzResource, SyntoArmModule):
                     [x in type_.lower() for x in ('sqlpool', 'bigdatapool')]):
                     ignore = True
 
+                # ignore WorkSpaceDefault Dependencies
+                if "WorkspaceDefault" in name:
+                    print("Name AND TYPE: ", name, type)
+                    ignore = True
+
                 dep = AzDependency(name, type_, ignore=ignore)
 
                 # if any dep already exists.. return this recursive step
