@@ -4,7 +4,7 @@ Copyright 2022 Vorys <dhuys@vorys.com>
 Useful utilities that doesn't fit in a particular group
 
 */
-package utils
+package internal
 
 import (
 	"bufio"

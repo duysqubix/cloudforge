@@ -5,7 +5,7 @@ Utilities and objects related to replacing tokens within files
 with externally defined values.
 
 */
-package utils
+package internal
 
 import (
 	"log"
@@ -29,35 +29,46 @@ type Tokenizer struct {
 	tree     *map[string]string
 	rootDir  *pathlib.Path
 	destPath *pathlib.Path
+	ext      string
 }
 
 // create new tokenizer object
-func TokenizerNew() *Tokenizer {
-
-	rootDir := GetCwd()
+func TokenizerNew(rootDir *pathlib.Path, ext string) *Tokenizer {
 
 	return &Tokenizer{
 		tree:     &map[string]string{},
 		rootDir:  rootDir,
 		destPath: pathlib.NewPathAfero("/", afero.NewMemMapFs()),
+		ext:      ext,
 	}
+}
+
+//Directly add file to tree
+//has potential to overwrite existing key, should it exist by chance
+func (t *Tokenizer) ReadFile(path *pathlib.Path) {
+	f_content, err := path.ReadFile()
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	(*t.tree)[path.String()] = string(f_content)
 }
 
 // recursivly traverses a directory and reads the objects
 // encountered. A directory will cause the method to be
 // invoked again. Any file encountered that passes the conditions
 // will be read and file contents stored within internal `Tokenizer.tree`
-func (t *Tokenizer) traverseDirectory(path *pathlib.Path) {
+func (t *Tokenizer) traverseDirectory(path *pathlib.Path, ext string) {
 	matches, _ := path.Glob("*")
 
 	for _, match := range matches {
 		is_dir, _ := match.IsDir()
 		if is_dir && match.Name() != "sandbox" {
-			t.traverseDirectory(match)
+			t.traverseDirectory(match, ext)
 		}
 
 		is_file, _ := match.IsFile()
-		if is_file && strings.Contains(filepath.Ext(match.Name()), ".tf") {
+		if is_file && (strings.Contains(filepath.Ext(match.Name()), ext)) {
 			absolute_path := match.String()
 			f_content, err := match.ReadFile()
 
@@ -73,7 +84,7 @@ func (t *Tokenizer) traverseDirectory(path *pathlib.Path) {
 // defined in Tokenizer.RootDir()
 func (t *Tokenizer) ReadRoot() {
 	root := t.RootDir()
-	t.traverseDirectory(root)
+	t.traverseDirectory(root, t.ext)
 }
 
 // combines both validation and replacement of tokens

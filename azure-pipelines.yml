@@ -16,6 +16,9 @@ steps:
       SourceFolder: .
       TargetFolder: '$(build.artifactstagingdirectory)/ecdeploy'
 
+  - script: python -m pip install -r modules/requirements.txt
+    displayName: "Install Dependencies"
+
   - task: GoTool@0
     inputs:
       version : '1.17.3'
@@ -29,15 +32,23 @@ steps:
         go test ./... -v 
 
   - task: Bash@3
-    displayName: "Compile source code"
+    displayName: "Compiling Deployment Engine"
     inputs:
       targetType: 'inline'
       workingDirectory: '$(build.artifactstagingdirectory)/ecdeploy/'
       script: |
-        make version && \
-        mkdir -p $(build.artifactstagingdirectory)/ecdeploy/bin
+        go build . && \
+        mkdir -p $(build.artifactstagingdirectory)/ecdeploy/bin && \
         mv ec $(build.artifactstagingdirectory)/ecdeploy/bin
   
+  - task: Bash@3
+    displayName: "Compiling Modules"
+    inputs:
+      targetType: 'inline'
+      workingDirectory: "$(build.artifactstagingdirectory)/ecdeploy/"
+      script:  bash ./scripts/compile_modules.sh
+
+
   - task: Bash@3
     displayName: "Copy Over useful scripts"
     inputs:
@@ -45,10 +56,11 @@ steps:
       workingDirectory: '$(build.artifactstagingdirectory)/ecdeploy/'
       script: |
         cp scripts/tree $(build.artifactstagingdirectory)/ecdeploy/bin
-        cp deploy.sh $(build.artifactstagingdirectory)/ecdeploy/bin
+        cp scripts/deploy.sh $(build.artifactstagingdirectory)/ecdeploy/bin
+        
+        # copy over all module binaries to scripts folder
 
   - task: PublishBuildArtifacts@1
-    condition: eq(variables['Build.SourceBranch'], 'refs/heads/master') # only publish artifacts if this is built from the main branch
     displayName: "Publish binary"
     inputs:
       PathtoPublish: '$(build.artifactstagingdirectory)/ecdeploy/bin'

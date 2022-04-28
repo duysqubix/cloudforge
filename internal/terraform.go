@@ -4,7 +4,7 @@ Copyright 2022 Duan Uys <dhuys@vorys.com>
 Handles Terraform operations including initalizing, validation, and deploying
 of project
 */
-package utils
+package internal
 
 import (
 	"context"
