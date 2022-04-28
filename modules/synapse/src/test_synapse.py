@@ -9,12 +9,82 @@ class SynapseTests(TestCase):
 
     def setUp(self):
         self.maxDiff = None
-    
+
     def test_ignore_dependency(self):
         dep1 = AzDependency("MyDep1", "LinkedServiceReference", ignore=False)
         dep2 = AzDependency("MyDep2", "LinkedServiceReference", ignore=True)
 
+    def test_notebook_format_python_code_multiline(self):
+        sample = {
+            "name": "MyNotebook",
+            "properties": {
+                "cells": [
+                    {
+                        "cell_type":
+                        "code",
+                        "source": [
+                            "class bdist_rpm ( Command):\r\n", "\r\n",
+                            "    user_options = [    ('bdist-base=', \r\n",
+                            "    None,\r\n",
+                            "         \"base directory for creating built distributions\"),        ('rpm-base=', None,\r\n",
+                            "         \"base directory for creating RPMs (defaults to \\\"rpm\\\" under \"\r\n",
+                            "         \"--bdist-base; must be specified for RPM 2)\"),\r\n",
+                            "        ( 'dist-dir=',   'd',\r\n",
+                            "         \"directory to put final RPM files in \"\r\n",
+                            "         \"(and .spec files if --spec-only)\") ,        ('source-only', None,         \"only generate source RPM\"),\r\n",
+                            "        ('binary-only', None,\r\n",
+                            "         \"only generate binary RPM\") ]\r\n",
+                            "         \r\n",
+                            "    def _format_changelog(self, changelog):\r\n",
+                            "        if not changelog:\r\n",
+                            "            return changelog\r\n",
+                            "        new_changelog = []\r\n",
+                            "        for line in string.split(string.strip(changelog), '\\n'):\r\n",
+                            "            line = string.strip(line)\r\n",
+                            "            if line[0 ] =='*' :\r\n",
+                            "                new_changelog.extend ( [''  ])\r\n",
+                            "            elif line[0] == '-':\r\n",
+                            "                new_changelog.append(line )\r\n",
+                            "            else:\r\n",
+                            "                new_changelog.append('  '+ line)"
+                        ],
+                        "execution_count":
+                        1
+                    },
+                ]
+            }
+        }
 
+        want = [
+            "class bdist_rpm(Command):\r\n", 
+            "    user_options = [\r\n", "        ('bdist-base=', None,\r\n",
+            "         \"base directory for creating built distributions\"),\r\n",
+            "        ('rpm-base=', None,\r\n",
+            "         \"base directory for creating RPMs (defaults to \\\"rpm\\\" under \"\r\n",
+            "         \"--bdist-base; must be specified for RPM 2)\"),\r\n",
+            "        ('dist-dir=', 'd', \"directory to put final RPM files in \"\r\n",
+            "         \"(and .spec files if --spec-only)\"),\r\n",
+            "        ('source-only', None, \"only generate source RPM\"),\r\n",
+            "        ('binary-only', None, \"only generate binary RPM\")\r\n",
+            "    ]\r\n", 
+            "    def _format_changelog(self, changelog):\r\n",
+            "        if not changelog:\r\n",
+            "            return changelog\r\n",
+            "        new_changelog = []\r\n",
+            "        for line in string.split(string.strip(changelog), '\\n'):\r\n",
+            "            line = string.strip(line)\r\n",
+            "            if line[0] == '*':\r\n",
+            "                new_changelog.extend([''])\r\n",
+            "            elif line[0] == '-':\r\n",
+            "                new_changelog.append(line)\r\n",
+            "            else:\r\n",
+            "                new_changelog.append('  ' + line)\r\n"
+        ]
+
+        notebook = SynNotebook(sample)
+        notebook.format_code()
+        got = notebook.properties['cells'][0]['source']
+        self.assertListEqual(got, want)
 
     def test_notebook_format_python_line_magic_command_ignore_mult_cells(self):
         """Test should ignore the line that is a magic link command"""
@@ -166,7 +236,7 @@ class SynapseTests(TestCase):
             AzDependency("MyLinkedService", "LinkedServiceReference")
         ]
 
-        want = 2 # number of ignored depedencies based on type
+        want = 2  # number of ignored depedencies based on type
         got = sum(map(lambda x: 1 if x.ignore is True else 0, azr.deptracker))
 
         self.assertEqual(want, got)

@@ -201,7 +201,7 @@ class SynNotebook(SynResource):
         lst = []
         for line in code.split('\n'):
             if line != "":
-                line = line.strip() + "\r\n"
+                line = line.rstrip() + "\r\n"
                 logging.debug("LINE: ", repr(line))
                 lst.append(line)
         return lst
