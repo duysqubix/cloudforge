@@ -218,6 +218,7 @@ func baseTerraformSetup(env string) *internal.AzureTerraform {
 
 	tmp_dir = tokenizer.DumpTo(tmp_dir, true)
 	tf := internal.NewAzureTerraformHandler(config, tmp_dir)
+
 	return tf
 }
 
@@ -229,14 +230,20 @@ func validateTerraform(tf *internal.AzureTerraform, cmd *cobra.Command) {
 		logger.Fatalf("Terraform did not validate properly:\n%v", errors)
 	}
 
-	if cmd.Flag("no-plan").Value.String() == "false" {
-		logger.Warning("Performing plan action")
-		if err := tf.Plan(); err != nil {
-			logger.Fatal(err)
+	ptrFlag := cmd.Flag("no-plan")
+
+	if ptrFlag != nil {
+
+		if cmd.Flag("no-plan").Value.String() == "false" {
+			logger.Warning("Performing plan action")
+			if err := tf.Plan(); err != nil {
+				logger.Fatal(err)
+			}
 		}
 	} else {
 		logger.Warning("Skipping plan action")
 	}
+
 }
 
 // Performs an Apply action with -auto-apply

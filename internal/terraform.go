@@ -58,6 +58,7 @@ func (t *AzureTerraform) Plan() error {
 // Pass-through method to terraforms' Apply function
 // with auto-apply
 func (t *AzureTerraform) Deploy() error {
+	fmt.Println("HELLO THERE YOU")
 	return t.tf.Apply(context.Background())
 }
 
@@ -100,7 +101,6 @@ func NewAzureTerraformHandler(c *ConfigFile, workingDir *pathlib.Path) *AzureTer
 	sasTokenBackend := makeBackendOpt("sas_token", sasToken)
 
 	err = tf.Init(context.Background(), tfexec.Upgrade(true), storageAccountBackend, containerNameBackend, tfKeyBackend, sasTokenBackend)
-
 	if err != nil {
 		log.Fatalf("error running Init: %s", err)
 	}
