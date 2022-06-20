@@ -1,5 +1,6 @@
 from pathlib import Path
 
+import re
 import argparse
 import json
 
@@ -84,4 +85,11 @@ if __name__ == '__main__':
     dest_arm_path = Path(args.output)
 
     with open(dest_arm_path, "w") as f:
-        json.dump(armt.to_arm_json(), f, indent=2)  #type: ignore
+        jdata: str = json.dumps(armt.to_arm_json(), indent=2)  #type: ignore
+
+        ##### final pass through -- rename ALL Workspace names to the supplied one -- needed for dynamic environment change
+        jdata = re.sub(r"ec360-syn-main-dev-WorkspaceDefault",
+                       args.workspace_name + "-WorkspaceDefault", jdata)
+
+        f.write(jdata)
+        # json.dump(armt.to_arm_json(), f, indent=2)  #type: ignore
