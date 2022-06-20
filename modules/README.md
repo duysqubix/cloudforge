@@ -29,3 +29,19 @@ responsibility to properly integrate modules into the base program via Golang.
   preloaded.
 
   `bash -l compile_modules.sh`
+
+### Synapse Module
+
+Synapse Module is responsible for dynamically creating valid synapse ARM
+templates from synapse json files. In order to run the module independently of
+the main program, you will need to have `python 3.8+` environment activated.
+Install all requirements via `pip install -r requirements.txt`
+
+Command: `ec syn`
+
+Args:
+
+- `--dir`: Current directory where Synapse Workspace is saved
+- `--config` : Deployment configuration file
+- `--workspace-name`: Name of the workspace targeted
+- `--output`: name given to the ARM file generated
