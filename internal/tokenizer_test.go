@@ -73,7 +73,7 @@ func TestTokenizer(t *testing.T) {
 		token.ReadRoot()
 		token.ReplaceTokens(&dummyTokens)
 
-		want := []string{"baz", "bazzer", "module data", "module var data"}
+		want := []string{"baz", "bazzer", "module data", "module var data", "SELECT distinct ssf.Seller_Central_Account_Name__c,\nssf.Seller_Store_Front_Name__c,\nssf.Merchant_ID__c,\nm.Region__c\nFROM seller_store_front__c ssf\nleft join marketplace__c m\non ssf.marketplace__C = m.id\nwhere ( ssf.Seller_Central_Account_Name__c is not null\nor ssf.Seller_Central_Account_Name__c not in ('','Nan','Null','-'))\nand ssf.Seller_Store_Front_Name__c is not null\nand ssf.Merchant_ID__c is not\nnull\n"}
 		got := []string{}
 
 		tree := token.GetTree()
