@@ -56,7 +56,7 @@ func TestTokenizer(t *testing.T) {
 			tmpRoot + "/variables.tf":    "__BAR__",
 			subdirname + "/main.tf":      "module data",
 			subdirname + "/variables.tf": "module var data",
-			sbdirname + "/foo.sql": "SELECT distinct ssf.Seller_Central_Account_Name__c,\nssf.Seller_Store_Front_Name__c,\nssf.Merchant_ID__c,\nm.Region__c\nFROM seller_store_front__c ssf\nleft join marketplace__c m\non ssf.marketplace__C = m.id\nwhere ( ssf.Seller_Central_Account_Name__c is not null\nor ssf.Seller_Central_Account_Name__c not in ('','Nan','Null','-'))\nand ssf.Seller_Store_Front_Name__c is not null\nand ssf.Merchant_ID__c is not\nnull\n"
+			subdirname + "/foo.sql":      "SELECT distinct ssf.Seller_Central_Account_Name__c,\nssf.Seller_Store_Front_Name__c,\nssf.Merchant_ID__c,\nm.Region__c\nFROM seller_store_front__c ssf\nleft join marketplace__c m\non ssf.marketplace__C = m.id\nwhere ( ssf.Seller_Central_Account_Name__c is not null\nor ssf.Seller_Central_Account_Name__c not in ('','Nan','Null','-'))\nand ssf.Seller_Store_Front_Name__c is not null\nand ssf.Merchant_ID__c is not\nnull\n",
 		}
 
 		if !reflect.DeepEqual(got, want) {
