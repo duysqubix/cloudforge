@@ -20,7 +20,7 @@ import (
 // global regexp that finds all values
 // encapsulated with `__`
 // ex: __MYTOKEN__
-const TOKEN_EXPRESSION string = "__(.*?)__"
+const TOKEN_EXPRESSION string = "__([^\n\r\t, ]*?)__"
 
 // Object that holds an entire directory
 // in memory and performs token replacement.
