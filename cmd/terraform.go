@@ -20,6 +20,15 @@ var (
 	projDir string
 )
 
+// cleans up the temporary directory that terraform creates
+func cleanUpTmpDir() {
+	if tfTmpDir != nil {
+		internal.CleanUpDir(tfTmpDir)
+	} else {
+		logger.Warningf("tfTmpDir pointer is set to nil")
+	}
+}
+
 func init() {
 	cwd, err := os.Getwd()
 	if err != nil {
@@ -219,6 +228,7 @@ func baseTerraformSetup(env string) *internal.AzureTerraform {
 	tmp_dir = tokenizer.DumpTo(tmp_dir, true)
 	tf := internal.NewAzureTerraformHandler(config, tmp_dir)
 
+	tfTmpDir = tmp_dir
 	return tf
 }
 
@@ -237,6 +247,7 @@ func validateTerraform(tf *internal.AzureTerraform, cmd *cobra.Command) {
 		if cmd.Flag("no-plan").Value.String() == "false" {
 			logger.Warning("Performing plan action")
 			if err := tf.Plan(); err != nil {
+				cleanUpTmpDir()
 				logger.Fatal(err)
 			}
 		}
@@ -249,6 +260,8 @@ func validateTerraform(tf *internal.AzureTerraform, cmd *cobra.Command) {
 // Performs an Apply action with -auto-apply
 func deployTerraform(tf *internal.AzureTerraform) {
 	if err := tf.Deploy(); err != nil {
+		cleanUpTmpDir()
 		logger.Fatal(err)
 	}
+	cleanUpTmpDir()
 }

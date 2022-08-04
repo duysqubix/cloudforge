@@ -82,3 +82,11 @@ func MakeDirUnique(dir *pathlib.Path) *pathlib.Path {
 
 	return pathlib.NewPathAfero(newName, afero.NewOsFs())
 }
+
+// cleans up and removes a directory
+func CleanUpDir(dir *pathlib.Path) {
+	logger.Infof("Removing directory: [%s]", dir.String())
+	if err := dir.RemoveAll(); err != nil {
+		logger.Fatalf("Attempting to remove a non-existent directory -> [%s]", dir.String())
+	}
+}
