@@ -7,7 +7,7 @@ import (
 )
 
 // Main version number that is being run at the moment
-var Version = "0.5.0"
+var Version = "0.5.1"
 
 // A pre-release marker for this version. If this is empty ("")
 // then it means that it is a final release. Otherwise, this is a pre-release

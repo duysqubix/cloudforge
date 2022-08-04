@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/chigopher/pathlib"
 	"github.com/spf13/afero"
@@ -43,9 +44,9 @@ func init() {
 	terraformCmd.PersistentFlags().StringVarP(&projDir, "proj-dir", "p", cwd, "Path to project directory that contains terraform files ")
 
 	debugCmd.AddCommand(devDebug)
-	//debugCmd.AddCommand(intDebug)
-	//debugCmd.AddCommand(uatDebug)
-	//debugCmd.AddCommand(prodDebug)
+	debugCmd.AddCommand(intDebug)
+	debugCmd.AddCommand(uatDebug)
+	debugCmd.AddCommand(prodDebug)
 
 	validateCmd.AddCommand(prodCmd)
 	validateCmd.AddCommand(uatCmd)
@@ -105,23 +106,7 @@ var devDeployCmd = &cobra.Command{
 var devDebug = &cobra.Command{
 	Use:   "dev",
 	Short: "Debugs dev environment",
-	Run:   debugDev,
-}
-
-func debugDev(cmd *cobra.Command, args []string) {
-	createDebugEnvironment("dev")
-}
-
-func createDebugEnvironment(env string) {
-	baseTerraformSetup(env)
-	config := GetConfigSettingsForEnv(env)
-
-	clientId := "ARM_CLIENT_ID"
-	clientSecret := "ARM_CLIENT_SECRET"
-	tenantId := "ARM_TENANT_ID"
-
-	prefix := fmt.Sprintf("%s=%s %s=%s %s=%s", clientId, config.Get(clientId), clientSecret, config.Get(clientSecret), tenantId, config.Get(tenantId))
-
+	Run:   func(cmd *cobra.Command, args []string) { createDebugEnvironment("dev") },
 }
 
 func validateDev(cmd *cobra.Command, args []string) {
@@ -162,6 +147,12 @@ func deployInt(cmd *cobra.Command, args []string) {
 
 }
 
+var intDebug = &cobra.Command{
+	Use:   "int",
+	Short: "Debugs int environment",
+	Run:   func(cmd *cobra.Command, args []string) { createDebugEnvironment("int") },
+}
+
 var uatCmd = &cobra.Command{
 	Use:   "uat",
 	Short: "Validates User Acceptance Envrionment",
@@ -187,6 +178,11 @@ func deployUat(cmd *cobra.Command, args []string) {
 
 }
 
+var uatDebug = &cobra.Command{
+	Use:   "uat",
+	Short: "Debugs uat environment",
+	Run:   func(cmd *cobra.Command, args []string) { createDebugEnvironment("uat") },
+}
 var prodCmd = &cobra.Command{
 	Use:   "prod",
 	Short: "Validates Production environment",
@@ -210,7 +206,55 @@ func deployProd(cmd *cobra.Command, args []string) {
 	deployTerraform(tf)
 }
 
+var prodDebug = &cobra.Command{
+	Use:   "prod",
+	Short: "Debugs prod environment",
+	Run:   func(cmd *cobra.Command, args []string) { createDebugEnvironment("prod") },
+}
+
 //############################################################
+
+func createDebugEnvironment(env string) {
+	var tfWrapper strings.Builder
+	var script strings.Builder
+
+	initFname := "init.sh"
+	wrapperFname := "terraform.sh"
+
+	config := initTerraformSetup(env)
+
+	clientId := "ARM_CLIENT_ID"
+	clientSecret := "ARM_CLIENT_SECRET"
+	tenantId := "ARM_TENANT_ID"
+	subId := "ARM_SUBSCRIPTION_ID"
+
+	prefix := fmt.Sprintf("%s=%s %s=%s %s=%s %s=%s terraform ", clientId, config.Get(clientId), clientSecret, config.Get(clientSecret), tenantId, config.Get(tenantId), subId, config.Get(subId))
+
+	backendConfigs := map[string]string{
+		"storage_account_name": config.Get("STORAGE_ACCOUNT_NAME"),
+		"sas_token":            config.Get("SAS_TOKEN"),
+		"key":                  config.Get("TF_KEY"),
+		"container_name":       config.Get("CONTAINER_NAME"),
+	}
+
+	script.WriteString(prefix + "init ")
+	for key, ele := range backendConfigs {
+		script.WriteString(fmt.Sprintf("-backend-config=%s=%s ", key, ele))
+	}
+
+	fmt.Println("debug environment: ", tfTmpDir.String())
+	initFilePath := tfTmpDir.Join(initFname)
+	internal.WriteFile(initFilePath.String(), script.String())
+	os.Chmod(initFilePath.String(), 0700)
+
+	tfWrapper.WriteString("#!/usr/bin/env bash\n\n")
+
+	tfWrapper.WriteString(fmt.Sprintf("%s $@", prefix))
+
+	wrapperFilePath := tfTmpDir.Join(wrapperFname)
+	internal.WriteFile(wrapperFilePath.String(), tfWrapper.String())
+	os.Chmod(wrapperFilePath.String(), 0700)
+}
 
 func GetConfigSettingsForEnv(env string) *internal.ConfigFile {
 	switch env {
@@ -244,6 +288,13 @@ func GetConfigSettingsForEnv(env string) *internal.ConfigFile {
 }
 
 func baseTerraformSetup(env string) *internal.AzureTerraform {
+	config := initTerraformSetup(env)
+	tf := internal.NewAzureTerraformHandler(config, tfTmpDir)
+
+	return tf
+}
+
+func initTerraformSetup(env string) *internal.ConfigFile {
 	tokenizer := internal.TokenizerNew(pathlib.NewPathAfero(projDir, afero.NewOsFs()), ".tf")
 	tokenizer.ReadRoot()
 
@@ -260,10 +311,9 @@ func baseTerraformSetup(env string) *internal.AzureTerraform {
 	tmp_dir := pathlib.NewPathAfero(internal.TMPDIR_PATH, afero.NewOsFs())
 
 	tmp_dir = tokenizer.DumpTo(tmp_dir, true)
-	tf := internal.NewAzureTerraformHandler(config, tmp_dir)
-
 	tfTmpDir = tmp_dir
-	return tf
+
+	return config
 }
 
 // Performs validation of terraform with either a plan or no-plan
