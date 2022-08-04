@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/chigopher/pathlib"
@@ -28,9 +29,14 @@ func init() {
 
 	terraformCmd.AddCommand(validateCmd)
 	terraformCmd.AddCommand(deployCmd)
-
+	terraformCmd.AddCommand(debugCmd)
 	// add globally persistent flags to terraform cmd
 	terraformCmd.PersistentFlags().StringVarP(&projDir, "proj-dir", "p", cwd, "Path to project directory that contains terraform files ")
+
+	debugCmd.AddCommand(devDebug)
+	//debugCmd.AddCommand(intDebug)
+	//debugCmd.AddCommand(uatDebug)
+	//debugCmd.AddCommand(prodDebug)
 
 	validateCmd.AddCommand(prodCmd)
 	validateCmd.AddCommand(uatCmd)
@@ -59,6 +65,12 @@ var terraformCmd = &cobra.Command{
 	`,
 }
 
+var debugCmd = &cobra.Command{
+	Use:   "debug",
+	Short: "Create a debugging environment",
+	Long:  "Creates a temporary directory with a script that can be used to initialize terraform",
+}
+
 var validateCmd = &cobra.Command{
 	Use:   "validate",
 	Short: "Validate different environments",
@@ -79,6 +91,28 @@ var devDeployCmd = &cobra.Command{
 	Use:   "dev",
 	Short: "Deploys dev environment",
 	Run:   deployDev,
+}
+
+var devDebug = &cobra.Command{
+	Use:   "dev",
+	Short: "Debugs dev environment",
+	Run:   debugDev,
+}
+
+func debugDev(cmd *cobra.Command, args []string) {
+	createDebugEnvironment("dev")
+}
+
+func createDebugEnvironment(env string) {
+	baseTerraformSetup(env)
+	config := GetConfigSettingsForEnv(env)
+
+	clientId := "ARM_CLIENT_ID"
+	clientSecret := "ARM_CLIENT_SECRET"
+	tenantId := "ARM_TENANT_ID"
+
+	prefix := fmt.Sprintf("%s=%s %s=%s %s=%s", clientId, config.Get(clientId), clientSecret, config.Get(clientSecret), tenantId, config.Get(tenantId))
+
 }
 
 func validateDev(cmd *cobra.Command, args []string) {
