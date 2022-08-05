@@ -3,6 +3,7 @@ package cmd
 import (
 	"os"
 
+	"github.com/chigopher/pathlib"
 	"github.com/op/go-logging"
 	"github.com/spf13/cobra"
 	"github.com/vorys-econtrol/ec/version"
@@ -27,6 +28,7 @@ var rootCmd = &cobra.Command{
 }
 
 var cfgFile string
+var tfTmpDir *pathlib.Path
 
 func Execute() {
 	err := rootCmd.Execute()
