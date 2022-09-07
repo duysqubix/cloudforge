@@ -70,16 +70,16 @@ if __name__ == '__main__':
         "integrationRuntime", "pipeline"
     ]
 
+    defaults: List[str] = []
     for rtype in valid_resources:
         for jfile in (syn_workspace_dir / rtype).glob("*.json"):
             if "WorkspaceDefault" in jfile.name:
-                continue
+                defaults.append(jfile.name.replace(".json", ""))
 
             with open(jfile, 'r') as f:
                 jdata = json.load(f)
 
                 synm.add_resource(rtype, jdata)
-
     armt: ArmTemplate = synm.convert_to_arm_objs()
 
     dest_arm_path = Path(args.output)
@@ -88,8 +88,12 @@ if __name__ == '__main__':
         jdata: str = json.dumps(armt.to_arm_json(), indent=2)  #type: ignore
 
         ##### final pass through -- rename ALL Workspace names to the supplied one -- needed for dynamic environment change
-        jdata = re.sub(r"ec360-syn-main-dev-WorkspaceDefault",
-                       args.workspace_name + "-WorkspaceDefault", jdata)
+        for default in defaults:
+            _d = default.split("WorkspaceDefault")
+            _d[0] = args.workspace_name
+            modified = "-WorkspaceDefault".join(_d)
+
+            jdata = re.sub(default, modified, jdata)
 
         f.write(jdata)
         # json.dump(armt.to_arm_json(), f, indent=2)  #type: ignore

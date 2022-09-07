@@ -222,15 +222,15 @@ class SynNotebook(SynResource):
                     code_fmt = self._format_python_code(code_str)
 
                 else:
-                    raise NotImplementedError(
-                        "formatting of language: %s not supported" %
-                        self.default_language)
+                    logging.warning("language not supported formatting: %s" %
+                                    self.default_language)
 
                 code_fmt_lst = self._code_str_to_list(code_fmt)
                 self.properties['cells'][idx]['source'] = code_fmt_lst
 
     def _format_python_code(self, code: str) -> str:
         logging.debug("PREFORMAT", repr(code))
+        code = code.replace(u"\xa0", u" ")
         fmt_code, _ = FormatCode(code)
 
         # uncomment magic line commands
