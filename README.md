@@ -1,4 +1,4 @@
 # ECDeploy Tool
 
-Managed eControl Digital Infrastructure by providing tools to validate and deploy
+Manage Azure by providing tools to validate and deploy
 infrastructure
