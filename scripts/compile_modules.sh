@@ -28,9 +28,11 @@ for module in ${MODULES[@]}; do
     
     # perform unit tests
     ${PY_TEST} ${module_dir}
-
-    # compile module to binary
-    ${PY_INSTALLER} -F --clean --workpath=/tmp/.build/ --distpath=${PWD}/bin -y -n ${module} ${module_dir}/main.py
+    for file in ${module_dir}/*.py;
+    do
+        fname=`basename $file .py`
+        ${PY_INSTALLER} -F --clean --workpath=/tmp/.build-$RANDOM/ --distpath=${PWD}/bin -y -n ${module}_${fname} ${module_dir}/${fname}.py&
+    done;
 
     
 done
