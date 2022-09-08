@@ -21,7 +21,7 @@ steps:
 
   - task: GoTool@0
     inputs:
-      version : '1.17.3'
+      version : '1.19.*'
 
   - task: Bash@3
     displayName: "Testing Code"
@@ -37,31 +37,11 @@ steps:
       targetType: 'inline'
       workingDirectory: '$(build.artifactstagingdirectory)/ecdeploy/'
       script: |
-        go build . && \
-        mkdir -p $(build.artifactstagingdirectory)/ecdeploy/bin && \
-        mv ec $(build.artifactstagingdirectory)/ecdeploy/bin
-  
-  - task: Bash@3
-    displayName: "Compiling Modules"
-    inputs:
-      targetType: 'inline'
-      workingDirectory: "$(build.artifactstagingdirectory)/ecdeploy/"
-      script:  bash ./scripts/compile_modules.sh
-
-
-  - task: Bash@3
-    displayName: "Copy Over useful scripts"
-    inputs:
-      targetType: 'inline'
-      workingDirectory: '$(build.artifactstagingdirectory)/ecdeploy/'
-      script: |
-        cp scripts/tree $(build.artifactstagingdirectory)/ecdeploy/bin
-        cp scripts/deploy.sh $(build.artifactstagingdirectory)/ecdeploy/bin
-        
-        # copy over all module binaries to scripts folder
+        bash ./scripts/build.sh 
 
   - task: PublishBuildArtifacts@1
     displayName: "Publish binary"
+    condition: eq(variables['Build.SourceBranch'], 'refs/heads/master')
     inputs:
       PathtoPublish: '$(build.artifactstagingdirectory)/ecdeploy/bin'
       ArtifactName: 'core'
