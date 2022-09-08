@@ -41,7 +41,7 @@ steps:
       targetType: 'inline'
       workingDirectory: '$(stg_dir)'
       script: |
-        bash ./scripts/build.sh 
+        bash ./scripts/build.sh && ls -la ./bin
 
   - task: PublishBuildArtifacts@1
     displayName: "Publish binary"
