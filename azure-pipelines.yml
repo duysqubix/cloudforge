@@ -11,7 +11,7 @@ pool:
 
 variables:
   - name: stg_dir
-    value: "$(build.artifactstagingdirectory)/ecdepoy" 
+    value: "$(build.artifactstagingdirectory)/ecdeploy" 
 
 steps:
   - task: CopyFiles@2
