@@ -18,7 +18,7 @@ steps:
     displayName: "Copy EC source code"
     inputs:
       SourceFolder: .
-      TargetFolder: '$(stg_dir)
+      TargetFolder: '$(stg_dir)'
 
   - script: python -m pip install -r modules/requirements.txt
     displayName: "Install Dependencies"
