@@ -46,8 +46,14 @@ func init() {
 
 var synapseCmd = &cobra.Command{
 	Use:   "syn",
-	Short: "Manages Synapse Workspace",
+	Short: "Manages Synapse",
 	Long:  `Used to validate and deploy a synapse workspace`,
+	Run:   invokeSynModule,
+}
+
+var synWorkspaceCmd = &cobra.Command{
+	Use:   "workspace",
+	Short: "Managed synapse workspace",
 	Run:   invokeSynModule,
 }
 
@@ -60,7 +66,6 @@ func invokeSynModule(cmd *cobra.Command, args []string) {
 
 	exPath := filepath.Dir(ex)
 	bin := exPath + "/synapse"
-	fmt.Println(bin)
 
 	sub_args := []string{
 		"--dir=" + cmd.Flag("workspace-dir").Value.String(),
@@ -77,10 +82,10 @@ func invokeSynModule(cmd *cobra.Command, args []string) {
 		sub_args = append(sub_args, "--dry-run")
 	}
 	mod := exec.Command(bin, sub_args...)
-	stdout, err := mod.Output()
+	stdout, err := mod.CombinedOutput()
 
 	if err != nil {
-		fmt.Println(err.Error())
+		fmt.Println(err.Error(), string(stdout))
 		return
 
 	}
