@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+BIN=ec
+
 SOURCE="${BASH_SOURCE[0]}"
 while [ -h "$SOURCE" ] ; do SOURCE="$(readlink "$SOURCE")"; done
 DIR="$( cd "$(dirname "$SOURCE" )/.." && pwd )"
@@ -18,27 +20,29 @@ if ! [[ -n "${EC_RELEASE}" ]]; then
     LD_FLAGS="-s -w -X ${GOPROJ}/version.PreRelease=dev"
 fi 
 
+if [ ! -d ${DIR}/bin ]; then
+    mkdir -p ${DIR}/bin
+fi
 # Ensure all remote modules are downlaoded and cached
 go mod download 
+
+# Test 
+echo "==> Testing..."
+go test -v ./...
 
 #Build 
 echo "==> Building..."
 
 go build \
     -ldflags "${LD_FLAGS}" \
-    -o "ec"
+    -o "${DIR}/bin/${BIN}"
 
 
-if [ ! -d ${DIR}/bin ]; then
-    mkdir -p ${DIR}/bin
-fi
-
-mv ec ${DIR}/bin/ec
 
 # Build Modules
 echo "==> Compiling Modules"
 
-bash -l ${DIR}/scripts/compile_modules.sh
+bash -l ${DIR}/scripts/compile_modules.sh ${BIN}
 
 #Done 
 echo 

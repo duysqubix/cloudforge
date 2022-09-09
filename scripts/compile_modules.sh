@@ -3,9 +3,14 @@
 #
 #  Compiles all modules
 #
-
+PY=$(which python3)
 PY_INSTALLER=$(which pyinstaller)
 PY_TEST=$(which pytest)
+
+if [ ! -n $1 ]; then
+    echo "Supply argument for binary name"
+    exit 1
+fi
 
 echo "PY_INSTALLER=${PY_INSTALLER}"
 
@@ -19,20 +24,34 @@ if [ ! -n ${PY_TEST} ]; then
     exit 1
 fi
 
+if [ ! -n ${PY} ]; then
+    echo "Python3 not found"
+    exit 1 
+fi 
+
+# generate spec build files for all available modules
+echo "Generating spec files"
+${PY} ${PWD}/scripts/build_spec.py # path -> /tmp/MODULE_NAME.spec
+
+
+
 MODULES=("synapse")
 
 for module in ${MODULES[@]}; do
     module_dir=${PWD}/modules/${module} 
-    
-    echo "Processing Module: ${module^^}"
-    
+    uid=$(uuidgen -t)
+
+    echo "Processing Module: ${module^^}"    
+
     # perform unit tests
     ${PY_TEST} ${module_dir}
-    for file in ${module_dir}/*.py;
-    do
-        fname=`basename $file .py`
-        ${PY_INSTALLER} -F --clean --workpath=/tmp/.build-$RANDOM/ --distpath=${PWD}/bin -y -n ${module}_${fname} ${module_dir}/${fname}.py&
-    done;
+    
+    uid_workdir="/tmp/.build-${uid}_$1-${module}"
+    spec_dir=${uid_workdir}/spec 
+
+    mkdir -p -v ${spec_dir}
+    mv -v /tmp/${module}.spec ${spec_dir}/${module}.spec
+    ${PY_INSTALLER} --clean --workpath=$uid_workdir --distpath=${PWD}/bin -y ${spec_dir}/${module}.spec
 
     
 done

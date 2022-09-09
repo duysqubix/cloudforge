@@ -84,8 +84,19 @@ func getExecutablePath() string {
 	return exPath
 }
 
+func getExecutablename() string {
+	ex, err := os.Executable()
+
+	if err != nil {
+		panic(err)
+	}
+
+	exPath := pathlib.NewPathAfero(ex, afero.NewOsFs())
+	return exPath.Name()
+}
+
 func invokeSynModulePrettify(cmd *cobra.Command, args []string) {
-	bin := getExecutablePath() + "/synapse_prettify"
+	bin := fmt.Sprintf("%s/%s_synapse_prettify", getExecutablePath(), getExecutablename())
 
 	sub_args := []string{
 		"--name=" + cmd.Flag("name").Value.String(),
@@ -107,7 +118,7 @@ func invokeSynModulePrettify(cmd *cobra.Command, args []string) {
 
 func invokeSynModuleArm(cmd *cobra.Command, args []string) {
 
-	bin := getExecutablePath() + "/synapse_arm"
+	bin := fmt.Sprintf("%s/%s_synapse_arm", getExecutablePath(), getExecutablename())
 
 	sub_args := []string{
 		"--dir=" + cmd.Flag("workspace-dir").Value.String(),
