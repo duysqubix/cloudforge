@@ -45,7 +45,7 @@ go build \
 # Build Modules
 echo "==> Compiling Modules"
 
-bash -l ${DIR}/scripts/compile_modules.sh ${BIN}
+bash --noprofile ${DIR}/scripts/compile_modules.sh ${BIN}
 
 #Done 
 echo 
