@@ -11,7 +11,7 @@ pool:
 
 variables:
   - name: stg_dir
-    value: "$(build.artifactstagingdirectory)/ecdepoy" 
+    value: "$(build.artifactstagingdirectory)/ecdeploy" 
 
 steps:
   - task: CopyFiles@2
@@ -41,7 +41,7 @@ steps:
       targetType: 'inline'
       workingDirectory: '$(stg_dir)'
       script: |
-        bash ./scripts/build.sh 
+        bash ./scripts/build.sh && ls -la ./bin
 
   - task: PublishBuildArtifacts@1
     displayName: "Publish binary"
