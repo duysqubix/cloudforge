@@ -17,7 +17,10 @@ cd "${DIR}"
 # In release mode we don't want debug information in the binary
 if ! [[ -n "${EC_RELEASE}" ]]; then
     echo "==> Building for Development"
-    LD_FLAGS="-s -w -X ${GOPROJ}/version.PreRelease=dev"
+    LD_FLAGS="-w -X ${GOPROJ}/version.PreRelease=dev"
+else
+    echo "==> Building for Release"
+    LD_FLAGS="-w -s"
 fi 
 
 if [ ! -d ${DIR}/bin ]; then
