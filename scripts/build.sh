@@ -31,14 +31,13 @@ go mod download
 
 # Test 
 echo "==> Testing..."
-go test -v ./...
-
+go test -v ./... && echo "Testing complete" || exit 1
 #Build 
 echo "==> Building..."
 
 go build \
     -ldflags "${LD_FLAGS}" \
-    -o "${DIR}/bin/${BIN}"
+    -o "${DIR}/bin/${BIN}" && echo "Build complete" || exit 1
 
 
 
@@ -47,6 +46,13 @@ echo "==> Compiling Modules"
 
 bash --noprofile ${DIR}/scripts/compile_modules.sh ${BIN}
 
-#Done 
-echo 
-echo "==> Done"
+
+if [[ -n "$EC_RELEASE" ]]; then
+    echo "***************Packing release build***************"
+    VERSION=$($DIR/bin/ec version 2>&1)
+    echo $VERSION
+    
+    mkdir -p $DIR/releases
+    
+    zip -v $DIR/releases/ec-$VERSION.zip $DIR/bin/*
+fi
