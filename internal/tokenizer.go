@@ -3,7 +3,6 @@ Copyright 2022 Duan Uys <dhuys@vorys.com>
 
 Utilities and objects related to replacing tokens within files
 with externally defined values.
-
 */
 package internal
 
@@ -20,7 +19,7 @@ import (
 // global regexp that finds all values
 // encapsulated with `__`
 // ex: __MYTOKEN__
-const TOKEN_EXPRESSION string = "__([^\n\r\t, ]*?)__"
+const TOKEN_EXPRESSION string = "{{__([^\n\r\t, ]*?)__}}"
 
 // Object that holds an entire directory
 // in memory and performs token replacement.
@@ -43,8 +42,8 @@ func TokenizerNew(rootDir *pathlib.Path, ext string) *Tokenizer {
 	}
 }
 
-//Directly add file to tree
-//has potential to overwrite existing key, should it exist by chance
+// Directly add file to tree
+// has potential to overwrite existing key, should it exist by chance
 func (t *Tokenizer) ReadFile(path *pathlib.Path) {
 	f_content, err := path.ReadFile()
 
@@ -121,9 +120,9 @@ func (t *Tokenizer) ReplaceTokens(tokens *map[string]string) {
 	for fpath, fcontent := range *t.tree {
 		for token, value := range *tokens {
 			if toLog {
-				logger.Infof("Setting token: __%v__", token)
+				logger.Infof("Setting token: %v", token)
 			}
-			fcontent = strings.ReplaceAll(fcontent, "__"+token+"__", value)
+			fcontent = strings.ReplaceAll(fcontent, "{{__"+token+"__}}", value)
 		}
 		toLog = false
 		(*t.tree)[fpath] = fcontent
@@ -132,7 +131,7 @@ func (t *Tokenizer) ReplaceTokens(tokens *map[string]string) {
 
 // Writes entire Tokenizer.tree to supplied dirpath.
 //
-/// If unique is true, it will append a UUID to end of supplied directory
+// / If unique is true, it will append a UUID to end of supplied directory
 // TODO: Build logic to prevent dirpath from being the
 // same as RootDir()
 func (t *Tokenizer) DumpTo(dirpath *pathlib.Path, unique bool) *pathlib.Path {
