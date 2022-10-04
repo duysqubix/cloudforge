@@ -83,7 +83,7 @@ class SyntoArmModule:
                                      workspace_name="")
             elif objname == "SynNotebook":
                 # preformat code
-                resource.format_code()
+                # resource.format_code()
 
                 armInstance = armObj(name=resource.name,
                                      properties=resource.properties,

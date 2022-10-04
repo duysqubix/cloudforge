@@ -1,7 +1,7 @@
 BIN="ec"
 GOPROJ="github.com/vorys-econtrol/ec"
 BIN_OUTPUT=$(CURDIR)/bin/$(BIN)
-VERSION=0.7.0
+VERSION=0.7.2
 
 
 LDFLAGS_DEV="-w -X $(GOPROJ)/version.PreRelease=dev -X $(GOPROJ)/version.Version=$(VERSION)"
@@ -18,7 +18,7 @@ compile-modules:
 
 package:
 	mkdir -pv $(CURDIR)/releases
-	zip -v $(CURDIR)/releases/ec-$(VERSION).zip $(CURDIR)/bin/*
+	zip -v -j $(CURDIR)/releases/ec-$(VERSION).zip $(CURDIR)/bin/*
 
 upload: package
 	gh -R github.com/duysqubix/ec-release release create $(VERSION) '$(CURDIR)/releases/ec-$(VERSION).zip' --generate-notes -t $(VERSION)
