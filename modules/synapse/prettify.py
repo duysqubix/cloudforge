@@ -3,20 +3,19 @@ import json
 import pygments
 
 from pygments.lexers import PythonLexer, SqlLexer
-from pygments.formatters import Terminal256Formatter, HtmlFormatter
+from pygments.formatters import Terminal256Formatter, HtmlFormatter, NullFormatter
 
 _supported_langs = ('python', 'sql')
-_supported_formats = ('terminal', 'html')
 _supported_types = ('sqlscript', 'notebook')
 _lex_map = {'python': PythonLexer, 'sql': SqlLexer}
-_format_map = {"terminal": Terminal256Formatter, "html": HtmlFormatter}
+_format_map = {"terminal": Terminal256Formatter, "html": HtmlFormatter, 'plain': NullFormatter}
 
 parser = argparse.ArgumentParser()
 
 parser.add_argument("--name", "-n", help="name of file", required=True)
 parser.add_argument("--format",
                     "-f",
-                    choices=_supported_formats,
+                    choices=list(_format_map.keys()),
                     default="terminal")
 parser.add_argument("--type", "-t", choices=_supported_types, required=True)
 
