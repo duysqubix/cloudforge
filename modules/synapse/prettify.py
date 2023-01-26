@@ -18,7 +18,8 @@ parser.add_argument("--format",
                     choices=list(_format_map.keys()),
                     default="terminal")
 parser.add_argument("--type", "-t", choices=_supported_types, required=True)
-
+parser.add_argument("--generate-sql-scripts", required=False, default=None, help="Generate SQL scripts from JSON artifacts")
+    
 
 class Notebook:
 
@@ -28,6 +29,8 @@ class Notebook:
         self.default_language = metadata['language_info']['name']
         self.spark_version = metadata['a365ComputeOptions']['sparkVersion']
         self._cells = jdata['properties']['cells']
+        self.folder = jdata['properties']['folder']['name']
+
 
     def prettify(self, fmt):
         if self.default_language not in _supported_langs:
@@ -51,6 +54,7 @@ class SqlScript:
     def __init__(self, jdata):
         self.name = jdata['name']
         self.query = jdata['properties']['content']['query']
+        self.folder = jdata['properties']['folder']['name']
 
     def prettify(self, fmt):
         return pygments.highlight(self.query,
@@ -61,6 +65,7 @@ class SqlScript:
 def main():
     args = parser.parse_args()
 
+    if not args.folder_name:
     jdata = json.load(open(args.name))
     fmt = args.format
 
