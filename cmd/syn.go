@@ -47,6 +47,9 @@ func init() {
 	synSqlCmd.AddCommand(synSqlDeployCmd)
 
 	synSqlDeployCmd.AddCommand(devSynSqlDeployCmd)
+	synSqlDeployCmd.AddCommand(intSynSqlDeployCmd)
+	synSqlDeployCmd.AddCommand(uatSynSqlDeployCmd)
+	synSqlDeployCmd.AddCommand(prodSynSqlDeployCmd)
 
 	synCreateArmCmd.Flags().StringVarP(&workspacePath, "workspace-dir", "d", "", "Path to workspace JSON files")
 	synCreateArmCmd.Flags().StringVarP(&workspaceName, "workspace-name", "n", "", "Name of the workspace")
@@ -94,12 +97,31 @@ var synSqlCmd = &cobra.Command{
 var synSqlDeployCmd = &cobra.Command{
 	Use:   "deploy",
 	Short: "Deploy SQL to Env",
+	Long:  "This series of commands deploys SQL scripts from your Synapse workspace into the supported environment. **IMPORTANT NOTE** For this automation deployment to work, it will deploy ALL SQL scripts that is found within the `migrations` folder (if it exists). It will then sort by the name of the file and execute them in that order. It is up to you to decide on a naming convention in order to ensure SQL scripts are executed in appropriate order",
 }
 
 var devSynSqlDeployCmd = &cobra.Command{
 	Use:   "dev",
 	Short: "Deploy SQL to Env",
 	Run:   deploySynSQLDev,
+}
+
+var intSynSqlDeployCmd = &cobra.Command{
+	Use:   "int",
+	Short: "Deploy SQL to Env",
+	Run:   deploySynSQLInt,
+}
+
+var uatSynSqlDeployCmd = &cobra.Command{
+	Use:   "uat",
+	Short: "Deploy SQL to Env",
+	Run:   deploySynSQLUat,
+}
+
+var prodSynSqlDeployCmd = &cobra.Command{
+	Use:   "prod",
+	Short: "Deploy SQL to Env",
+	Run:   deploySynSQLProd,
 }
 
 func getExecutablePath() string {
@@ -126,6 +148,18 @@ func getExecutablename() string {
 
 func deploySynSQLDev(cmd *cobra.Command, args []string) {
 	deploySynSql("dev", cmd.Flag("target-dir").Value.String())
+}
+
+func deploySynSQLInt(cmd *cobra.Command, args []string) {
+	deploySynSql("int", cmd.Flag("target-dir").Value.String())
+}
+
+func deploySynSQLUat(cmd *cobra.Command, args []string) {
+	deploySynSql("uat", cmd.Flag("target-dir").Value.String())
+}
+
+func deploySynSQLProd(cmd *cobra.Command, args []string) {
+	deploySynSql("prod", cmd.Flag("target-dir").Value.String())
 }
 
 func deploySynSql(env string, target_dir string) {
