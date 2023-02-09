@@ -74,8 +74,21 @@ func init() {
 
 	/*******************************************/
 	devSynSqlDeployCmd.Flags().StringVarP(&targetDir, "target-dir", "t", "", "Location of Synapse Stored SQL Scripts")
-
+	devSynSqlDeployCmd.Flags().BoolVarP(&dryRun, "dry-run", "d", false, "")
 	devSynSqlDeployCmd.MarkFlagRequired("target-dir")
+
+	intSynSqlDeployCmd.Flags().StringVarP(&targetDir, "target-dir", "t", "", "Location of Synapse Stored SQL Scripts")
+	intSynSqlDeployCmd.Flags().BoolVarP(&dryRun, "dry-run", "d", false, "")
+	intSynSqlDeployCmd.MarkFlagRequired("target-dir")
+
+	uatSynSqlDeployCmd.Flags().StringVarP(&targetDir, "target-dir", "t", "", "Location of Synapse Stored SQL Scripts")
+	uatSynSqlDeployCmd.MarkFlagRequired("target-dir")
+	uatSynSqlDeployCmd.Flags().BoolVarP(&dryRun, "dry-run", "d", false, "")
+
+	prodSynSqlDeployCmd.Flags().StringVarP(&targetDir, "target-dir", "t", "", "Location of Synapse Stored SQL Scripts")
+	prodSynSqlDeployCmd.Flags().BoolVarP(&dryRun, "dry-run", "d", false, "")
+	prodSynSqlDeployCmd.MarkFlagRequired("target-dir")
+
 }
 
 var synCreateArmCmd = &cobra.Command{
@@ -200,6 +213,17 @@ func deploySynSql(env string, target_dir string) {
 	fmt.Println("Saving SQL Scripts to" + destPath.String())
 
 	fmt.Println(string(stdout))
+	fmt.Println("WHAT IS GOING ON")
+	tokenizer := internal.TokenizerNew(destPath, ".sql")
+	tokenizer.ReadRoot()
+	tokenizer.ReplaceAndValidateTokens(tokens)
+	tokenizer.DumpTo(destPath, false)
+
+	fmt.Println("dryRun is: ", dryRun)
+	if dryRun {
+		fmt.Println("DRY RUN STOP NOW")
+		return
+	}
 
 	// now read these current files and deploy
 	bin = fmt.Sprintf("%s/%s_synapse_sql", getExecutablePath(), getExecutablename())
@@ -258,11 +282,11 @@ func invokeSynModuleArm(cmd *cobra.Command, args []string) {
 		"--output=" + cmd.Flag("output").Value.String(),
 	}
 
-	if debug == true {
+	if debug {
 		sub_args = append(sub_args, "--debug")
 	}
 
-	if dryRun == true {
+	if dryRun {
 		sub_args = append(sub_args, "--dry-run")
 	}
 	mod := exec.Command(bin, sub_args...)

@@ -1,7 +1,7 @@
 BIN="ec"
 GOPROJ="github.com/vorys-econtrol/ec"
 BIN_OUTPUT=$(CURDIR)/bin/$(BIN)
-VERSION=0.7.6
+VERSION=0.7.7
 
 
 LDFLAGS_DEV="-w -X $(GOPROJ)/version.PreRelease=dev -X $(GOPROJ)/version.Version=$(VERSION)"
