@@ -6,39 +6,49 @@ ec syn prettify --options
 """
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
+from azure.identity import ClientSecretCredential
+
+
 
 from . import TMP_PATH
 from .tokenizer import Tokenizer
 from .terraform import TerraformBinWrapper
+from .keyvault import AzureKeyVault
+from .utils import EnvConfiguration
 
 
-class TerraformCommands:
+class BaseCommand:
     def __init__(self, args: Namespace) -> None:
-        self.targeted_action = args.action
-        self.tf = TerraformBinWrapper(args.env)
-        self.args = args
+        self._args = args
+        self.setup()
     
-    def _init_terraform(self):
-        tokenizer = Tokenizer(self.args.proj_dir, "tf")
+    def setup(self):
+        pass
+
+class TerraformCommands(BaseCommand):
+    def setup(self) -> None:
+        self.targeted_action = self._args.action
+        self.tf = TerraformBinWrapper(self._args.env)
+        
+        tokenizer = Tokenizer(self._args.proj_dir, "tf")
         tokenizer.read_root()
         
-        config = self.tf.get_config(self.args.proj_dir)
+        self.config = EnvConfiguration.load_env(self.tf.env, self._args.proj_dir)
         
-        arms = config.get_arms()
-        client_id = arms["ARM_CLIENT_ID"]
-        client_secret = arms["ARM_CLIENT_SECRET"]
-        tenant_id = arms["ARM_TENANT_ID"]
-        vault_name = config.get("KEY_VAULT_NAME")
+
+        vault_name = self.config.get("KEY_VAULT_NAME")
+        
+        auth = ClientSecretCredential(**self.config.get_terraform_creds())
+        tokens = AzureKeyVault(vault_name, auth).get_secrets()
         
         # get secrets from Key Vault
-        tokens = {"STORAGENAME": "yes", "LOCATION": "HERE"}
         parsed_tree = tokenizer.replace_and_validate_tokens(tokens)
         
         tokenizer.dump_to(tree=parsed_tree, dirpath=TMP_PATH, unique=True)
         
     
     def execute(self):
-        self._init_terraform()
+        pass
 
 class ECArgParser(ArgumentParser):
     
