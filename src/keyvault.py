@@ -16,7 +16,7 @@ class AzureKeyVault:
             credential (ClientSecretCredential): The credential object for accessing the Key Vault.
         """
         vault_url = VAULT_URL_BASE.format(vault_name)
-        self.secret_client = SecretClient(vault_url, credential=credential)
+        self.secret_client = SecretClient(vault_url, credential=credential, verify_challenge_resource=False)
 
     def get_secrets(self):
         """
