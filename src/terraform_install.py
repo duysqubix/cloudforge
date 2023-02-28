@@ -28,7 +28,7 @@ class TerraformInstaller:
         __enter__: Enters a context and installs the Terraform binary.
         __exit__: Exits the context and removes the Terraform binary.
     """
-    def __init__(self, version: Optional[str] = None):
+    def __init__(self, version: Optional[str] = None, keep_binary=False):
         """
         Initializes the TerraformInstaller object.
 
@@ -49,6 +49,7 @@ class TerraformInstaller:
         self._tf_bin = None
 
         self._version = self._latest_release_version() if not version else self._exact_release_version(version)
+        self._keep_binary = keep_binary
 
     def install(self):
         """
@@ -137,7 +138,8 @@ class TerraformInstaller:
         Exits the context and removes the Terraform binary.
         """
         # delete binary to free up space
-        os.remove(self._tf_bin)
+        if not self._keep_binary:
+            os.remove(self._tf_bin)
 
     @property
     def bin_path(self) -> str:

@@ -212,7 +212,7 @@ class Tokenizer:
 
             new_path_obj.write_text(fcontent)
         return dirpath
-            
+                
         
 if __name__ == '__main__':
     t = Tokenizer(root_dir=Path(__file__).parent.parent / ".tftest", ext="tf")

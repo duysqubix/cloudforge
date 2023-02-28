@@ -61,6 +61,15 @@ class EnvConfiguration:
             dict: A dictionary of key-value pairs that have keys containing the substring "ARM_".
         """
         return dict(filter(lambda item: "ARM_" in item[0], self.key_pairs.items()))
+    
+    def ensure_arms_in_env(self):
+        """ensure ARM_ config variables are set in environment
+        """
+        arms = self.get_arms()
+        
+        for k,v in self.get_arms().items():
+            os.environ[k] = v
+        
 
     def get(self, key):
         """Wrapper to get value from key, returns None if it can't find anything

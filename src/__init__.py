@@ -7,7 +7,8 @@ from datetime import datetime
 VALID_ENVS = ["dev", "stg", "uat", "prod"]
 
 TMP_DIR = Path(tempfile.gettempdir())
-TMP_PATH = TMP_DIR / ".terraform-py"
+TFPY_DIR_BASE_NAME = ".terraform-py"
+TMP_PATH = TMP_DIR / TFPY_DIR_BASE_NAME
 
 class UnsupportedDevEnvironment(Exception):
     pass
