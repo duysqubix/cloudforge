@@ -46,12 +46,11 @@ Methods:
 Constants:
     _TOKEN_RE: A regular expression object used to parse tokens from the content.
 """
-
+from . import logger
 from typing import Dict, Set
 from pathlib import Path
 
 import re
-import logging 
 import uuid
 
 
@@ -193,10 +192,10 @@ class Tokenizer:
             dirpath = Path(f"{dirpath.absolute()}-{uuid.uuid4()}")
 
         if not dirpath.exists():
-            logging.info(f"Creating directory: [{dirpath.absolute()}]")
+            logger.info(f"Creating directory: [{dirpath.absolute()}]")
             dirpath.mkdir()
         else:
-            logging.warning("Directory already exists, overwriting.....")
+            logger.warning("Directory already exists, overwriting.....")
             for fobj in dirpath.glob("*"):
                 if fobj.is_file():
                     fobj.unlink()
@@ -207,7 +206,7 @@ class Tokenizer:
         for fpath, fcontent in tree.items():
             new_path = fpath.replace(root_dir_str, str(dirpath.absolute()))
             new_path_obj = Path(new_path)
-            logging.info(f"[{fpath}]-->[{new_path}]")
+            logger.info(f"[{fpath}]-->[{new_path}]")
             if not new_path_obj.is_file():
                 new_path_obj.parent.mkdir(parents=True, exist_ok=True)
 
@@ -216,8 +215,6 @@ class Tokenizer:
             
         
 if __name__ == '__main__':
-    import logging
-    logging.basicConfig(level=logging.DEBUG)
     t = Tokenizer(root_dir=Path(__file__).parent.parent / ".tftest", ext="tf")
     tokens = {
         "STORAGENAME": "mystorageaccount",

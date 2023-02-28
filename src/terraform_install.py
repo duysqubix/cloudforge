@@ -1,10 +1,8 @@
-import json
 import os
 import platform
 import requests
 import semantic_version
 import tempfile
-import uuid
 import zipfile
 from pathlib import Path
 from typing import Optional

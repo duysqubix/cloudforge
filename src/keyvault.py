@@ -1,6 +1,7 @@
 from azure.identity import ClientSecretCredential
 from azure.keyvault.secrets import SecretClient
-import logging
+
+from . import logger 
 
 VAULT_URL_BASE = "https://{}.vault.azure.net"
 
@@ -28,14 +29,12 @@ class AzureKeyVault:
         secrets = dict()
         for secret_properties in self.secret_client.list_properties_of_secrets():
             secret = self.secret_client.get_secret(secret_properties.name)
-            logging.info("Storing secret: [%s]", secret.name)
+            logger.info("Storing secret: [%s]", secret.name)
             secrets[secret.name] = secret.value
         return secrets
 
                 
 if __name__ == "__main__":
-    import logging 
-    logging.basicConfig(level=logging.INFO)
     from azure.identity import ClientSecretCredential
     auth = ClientSecretCredential("da617b61-ca50-405b-abc8-314c0148fe06", 
                                   "98b6a09f-672c-41f1-9939-e2e1398c7aec", 

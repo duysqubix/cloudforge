@@ -1,12 +1,11 @@
 import json
-import logging
 import os
 import subprocess
 import sys
 import tempfile
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Type, Union
 
-logger = logging.getLogger(__name__)
+from . import logger 
 
 COMMAND_WITH_SUBCOMMANDS = {"workspace"}
 

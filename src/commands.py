@@ -9,8 +9,7 @@ from pathlib import Path
 from azure.identity import ClientSecretCredential
 
 
-
-from . import TMP_PATH
+from . import TMP_PATH, logger
 from .tokenizer import Tokenizer
 from .terraform import TerraformBinWrapper
 from .keyvault import AzureKeyVault
@@ -19,7 +18,7 @@ from .utils import EnvConfiguration
 
 class BaseCommand:
     def __init__(self, args: Namespace) -> None:
-        self._args = args
+        self._args = args            
         self.setup()
     
     def setup(self):
@@ -53,18 +52,33 @@ class TerraformCommands(BaseCommand):
 class ECArgParser(ArgumentParser):
     
     def init(self):
+        self.add_argument("-v", "--verbose", action="store_true", help="Enable verbose mode")
         cwd = Path.cwd()
         sub_parser = self.add_subparsers(help='Available subcommands', dest='subcmd')
 
         tf_subcmd = sub_parser.add_parser('tf', help='Terraform available commands', prefix_chars='tf-')
         tf_subcmd.add_argument("action", choices=['validate', 'deploy', 'debug'], help="Choose an action")
         tf_subcmd.add_argument("env", choices=['dev', 'stg', 'uat', 'prod'], help="Choose an targeted environment")
-        tf_subcmd.add_argument("-d", "--proj-dir", default=str(cwd.absolute()), type=lambda x: Path(x))
+        tf_subcmd.add_argument("-d", "--proj-dir", default=str(cwd.absolute()), type=lambda x: Path(x), help=f"Define the project directory that holds ECTF files. Default: {str(cwd.absolute())}")
         return self.parse_args()
 
 def execute():
-    parser = ECArgParser(prog='ec')
+    parser = ECArgParser(prog='ec')    
     args = parser.init()
+    
+    if args.verbose:
+        logger.enable_debug()
+        logger.enable_file_logging()
+    
+    if not args:
+        parser.print_help()
+        return
+
     if args.subcmd == 'tf':
         tfcmds = TerraformCommands(args)
         tfcmds.execute()
+    else:
+        parser.print_help()
+    
+    logger.disable_debug()
+    logger.disable_file_logging()
