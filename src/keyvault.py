@@ -1,13 +1,14 @@
 from azure.identity import ClientSecretCredential
 from azure.keyvault.secrets import SecretClient
 
-from . import logger 
+from . import logger
 
 VAULT_URL_BASE = "https://{}.vault.azure.net"
 
+
 class AzureKeyVault:
     """Class to access secrets from an Azure Key Vault."""
-    
+
     def __init__(self, vault_name: str, credential: ClientSecretCredential) -> None:
         """
         Initialize a new instance of the AzureKeyVault class.
@@ -17,7 +18,9 @@ class AzureKeyVault:
             credential (ClientSecretCredential): The credential object for accessing the Key Vault.
         """
         vault_url = VAULT_URL_BASE.format(vault_name)
-        self.secret_client = SecretClient(vault_url, credential=credential, verify_challenge_resource=False)
+        self.secret_client = SecretClient(
+            vault_url, credential=credential, verify_challenge_resource=False
+        )
 
     def get_secrets(self):
         """
@@ -33,11 +36,14 @@ class AzureKeyVault:
             secrets[secret.name] = secret.value
         return secrets
 
-                
+
 if __name__ == "__main__":
     from azure.identity import ClientSecretCredential
-    auth = ClientSecretCredential("da617b61-ca50-405b-abc8-314c0148fe06", 
-                                  "98b6a09f-672c-41f1-9939-e2e1398c7aec", 
-                                  "DJA8Q~~66on.m.zIZhoV148sRssH7I3Txr3Aab9F")
+
+    auth = ClientSecretCredential(
+        "da617b61-ca50-405b-abc8-314c0148fe06",
+        "98b6a09f-672c-41f1-9939-e2e1398c7aec",
+        "DJA8Q~~66on.m.zIZhoV148sRssH7I3Txr3Aab9F",
+    )
     akv = AzureKeyVault("qubixdsectest", auth)
     print(akv.get_secrets())

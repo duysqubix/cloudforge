@@ -3,6 +3,7 @@ from tempfile import NamedTemporaryFile
 
 from .utils import EnvConfiguration
 
+
 def test_read_and_parse_no_file(monkeypatch):
     # Setup
     expected_key_pairs = dict(os.environ)
@@ -16,6 +17,7 @@ def test_read_and_parse_no_file(monkeypatch):
 
     # Verify
     assert ec.key_pairs == expected_key_pairs
+
 
 def test_read_and_parse_with_file():
     # Setup
@@ -31,6 +33,7 @@ def test_read_and_parse_with_file():
 
         # Verify
         assert ec.key_pairs == expected_key_pairs
+
 
 def test_get_arms():
     # Setup

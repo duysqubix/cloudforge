@@ -56,11 +56,14 @@ import uuid
 
 _TOKEN_RE = re.compile(r"{{__([^\n\r\t, ]*?)__}}")
 
+
 class UnparsedTokensError(Exception):
     """
     Exception raised when there are unused tokens in the parsed content.
     """
+
     pass
+
 
 class Tokenizer:
     """A class for tokenizing and parsing the content of files in a directory.
@@ -143,7 +146,7 @@ class Tokenizer:
 
             tree_parsed[fpath] = parsed_content
         return tree_parsed
-        
+
     def validate_tokens(self, parsed_tree: Dict[str, str]) -> Set[str]:
         """Validates whether all the tokens in the parsed content are used.
 
@@ -212,14 +215,14 @@ class Tokenizer:
 
             new_path_obj.write_text(fcontent)
         return dirpath
-                
-        
-if __name__ == '__main__':
+
+
+if __name__ == "__main__":
     t = Tokenizer(root_dir=Path(__file__).parent.parent / ".tftest", ext="tf")
     tokens = {
         "STORAGENAME": "mystorageaccount",
         "LOCATION": "southcentralus",
-        "OTHER": "yup"
+        "OTHER": "yup",
     }
     t.read_root()
     parsed_tree = t.replace_and_validate_tokens(tokens)

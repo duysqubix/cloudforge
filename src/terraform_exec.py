@@ -5,9 +5,10 @@ import sys
 import tempfile
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Type, Union
 
-from . import logger 
+from . import logger
 
 COMMAND_WITH_SUBCOMMANDS = {"workspace"}
+
 
 class Tfstate:
     def __init__(self, data: Optional[Dict[str, str]] = None):
@@ -34,6 +35,7 @@ class Tfstate:
         logger.debug("%s does not exist", file_path)
 
         return Tfstate()
+
 
 class TerraformFlag:
     pass
@@ -198,6 +200,11 @@ class Terraform:
         args = self._generate_default_args(dir_or_plan)
         return self.cmd("plan", *args, **options)
 
+    def validate(self, **kwargs) -> CommandOutput:
+        options = kwargs.copy()
+        option = self._generate_default_options(options)
+        return self.cmd("validate", **options)
+
     def init(
         self,
         dir_or_plan: Optional[str] = None,
@@ -358,7 +365,6 @@ class Terraform:
         environ_vars = {}
         if self.is_env_vars_included:
             environ_vars = os.environ.copy()
-
         p = subprocess.Popen(
             cmds, stdout=stdout, stderr=stderr, cwd=working_folder, env=environ_vars
         )
@@ -480,7 +486,7 @@ class Terraform:
 
     def list_workspace(self) -> List[str]:
         """List of workspaces
-        
+
         :return: workspaces
         :example:
             >>> tf = Terraform()
@@ -491,9 +497,9 @@ class Terraform:
             filter(
                 lambda workspace: len(workspace) > 0,
                 map(
-                    lambda workspace: workspace.strip('*').strip(),
-                    (self.cmd("workspace", "list")[1] or '').split()
-                )
+                    lambda workspace: workspace.strip("*").strip(),
+                    (self.cmd("workspace", "list")[1] or "").split(),
+                ),
             )
         )
 
@@ -522,10 +528,11 @@ class VariableFiles:
             os.unlink(f.name)
 
         self.files = []
-        
-        
+
+
 if __name__ == "__main__":
     from terraform_install import TerraformInstaller
+
     with TerraformInstaller() as tf_installer:
         tf = Terraform(terraform_bin_path=tf_installer.bin_path)
         _, output, _ = tf.cmd("version")

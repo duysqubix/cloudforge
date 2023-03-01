@@ -28,6 +28,7 @@ class TerraformInstaller:
         __enter__: Enters a context and installs the Terraform binary.
         __exit__: Exits the context and removes the Terraform binary.
     """
+
     def __init__(self, version: Optional[str] = None, keep_binary=False):
         """
         Initializes the TerraformInstaller object.
@@ -35,9 +36,11 @@ class TerraformInstaller:
         Args:
             version: A string representing the version of Terraform to install.
         """
-        tf_index = requests.get("https://releases.hashicorp.com/terraform/index.json").json()
+        tf_index = requests.get(
+            "https://releases.hashicorp.com/terraform/index.json"
+        ).json()
         self._version_index = {
-            semantic_version.Version(k): v for k, v in tf_index['versions'].items()
+            semantic_version.Version(k): v for k, v in tf_index["versions"].items()
         }
 
         self._pyos = platform.system().lower()
@@ -48,7 +51,11 @@ class TerraformInstaller:
 
         self._tf_bin = None
 
-        self._version = self._latest_release_version() if not version else self._exact_release_version(version)
+        self._version = (
+            self._latest_release_version()
+            if not version
+            else self._exact_release_version(version)
+        )
         self._keep_binary = keep_binary
 
     def install(self):
@@ -67,10 +74,10 @@ class TerraformInstaller:
         Returns:
             A dictionary containing the metadata for the Terraform binary.
         """
-        for build in self._version_index[version]['builds']:
-            if build.get('arch') == self._arch and build.get('os') == self._pyos:
+        for build in self._version_index[version]["builds"]:
+            if build.get("arch") == self._arch and build.get("os") == self._pyos:
                 return build
-        raise IndexError('version not found, fatal error')
+        raise IndexError("version not found, fatal error")
 
     def _download_and_install(self):
         """
@@ -81,7 +88,7 @@ class TerraformInstaller:
         """
         mdata = self._get_binary_metadata(self._version)
 
-        url = mdata['url']
+        url = mdata["url"]
 
         tf_zip = requests.get(url)
 
@@ -89,13 +96,15 @@ class TerraformInstaller:
             zfile.write(tf_zip.content)
             zfile.flush()
             with zipfile.ZipFile(zfile.name) as zip_ref:
-                tfbin_path = Path(tempfile.gettempdir()) / ("terraform-" + next(tempfile._get_candidate_names()))
+                tfbin_path = Path(tempfile.gettempdir()) / (
+                    "terraform-" + next(tempfile._get_candidate_names())
+                )
                 zip_ref.extractall(tfbin_path)
 
         # finally make terraform executable
         tfbin = tfbin_path / "terraform"
         os.chmod(tfbin, (os.stat(tfbin).st_mode | 0o111))
-                         
+
         return tfbin
 
     def _latest_release_version(self):
@@ -105,7 +114,9 @@ class TerraformInstaller:
         Returns:
             A semantic_version.Version object representing the latest release version of Terraform.
         """
-        latest_version = max([x for x in self._version_index.keys() if not x.prerelease])
+        latest_version = max(
+            [x for x in self._version_index.keys() if not x.prerelease]
+        )
         return latest_version
 
     def _exact_release_version(self, version: str):
@@ -120,7 +131,7 @@ class TerraformInstaller:
         """
         version = semantic_version.Version(version)
         if not self._version_index.get(version):
-            raise IndexError('Version does not exist')
+            raise IndexError("Version does not exist")
         return version
 
     def __enter__(self):

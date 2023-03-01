@@ -15,6 +15,7 @@ from copy import deepcopy
 
 import os
 
+
 class EnvConfiguration:
     """
     Represents a configuration object for environment variables.
@@ -26,6 +27,7 @@ class EnvConfiguration:
         key_pairs (Dict[str, str]): A dictionary of key-value pairs.
 
     """
+
     def __init__(self, fpath: Optional[str] = None) -> None:
         """
         Initializes a new instance of the `EnvConfiguration` class.
@@ -35,7 +37,7 @@ class EnvConfiguration:
         """
         self.fpath: Optional[Path] = Path(fpath) if fpath is not None else None
         self.key_pairs: Dict[str, str] = dict()
-        
+
     def read_and_parse(self):
         """
         Reads and parses the configuration file, or uses environment variables if no file is specified.
@@ -46,12 +48,15 @@ class EnvConfiguration:
             # this will more than likely include variables not of interest
             self.key_pairs = deepcopy(dict(os.environ))
         else:
-            with open(self.fpath, 'r') as f:
+            with open(self.fpath, "r") as f:
                 lines = f.readlines()
                 for line in lines:
                     line = line.strip()
                     key, value = line.split("=", maxsplit=1)
-                    self.key_pairs[key] = value 
+                    self.key_pairs[key] = value
+
+        if self.key_pairs.get("SAS_TOKEN"):
+            self.key_pairs["SAS_TOKEN"] = self.key_pairs["SAS_TOKEN"].replace('"', "")
 
     def get_arms(self) -> Dict[str, str]:
         """
@@ -61,15 +66,13 @@ class EnvConfiguration:
             dict: A dictionary of key-value pairs that have keys containing the substring "ARM_".
         """
         return dict(filter(lambda item: "ARM_" in item[0], self.key_pairs.items()))
-    
+
     def ensure_arms_in_env(self):
-        """ensure ARM_ config variables are set in environment
-        """
+        """ensure ARM_ config variables are set in environment"""
         arms = self.get_arms()
-        
-        for k,v in self.get_arms().items():
+
+        for k, v in self.get_arms().items():
             os.environ[k] = v
-        
 
     def get(self, key):
         """Wrapper to get value from key, returns None if it can't find anything
@@ -81,33 +84,33 @@ class EnvConfiguration:
             str: The value of the key or `None` if it can't find anything.
         """
         return self.key_pairs[key]
-    
+
     def get_terraform_creds(self):
         arms = self.get_arms()
         client_id = arms["ARM_CLIENT_ID"]
         client_secret = arms["ARM_CLIENT_SECRET"]
         tenant_id = arms["ARM_TENANT_ID"]
-        
+
         return {
             "client_id": client_id,
             "client_secret": client_secret,
-            "tenant_id": tenant_id
+            "tenant_id": tenant_id,
         }
-    
+
     @classmethod
     def load_env(cls, env: str, proj_dir: Path):
         config_file: Path = Path(proj_dir)
-        
-        config_file /= f".env.{env}" # this will dynamically look for the environment based on the `env` supplied
-        
-        use_arm_env = os.getenv('ARM_VARS_USE_EXISTING')
-        
+
+        config_file /= f".env.{env}"  # this will dynamically look for the environment based on the `env` supplied
+
+        use_arm_env = os.getenv("ARM_VARS_USE_EXISTING")
+
         if not use_arm_env:
             if config_file == Path(proj_dir):
                 raise FileNotFoundError("config not set properly: %s" % config_file)
             config = cls(fpath=str(config_file.absolute()))
         else:
             config = cls(fpath=None)
-        
+
         config.read_and_parse()
         return config

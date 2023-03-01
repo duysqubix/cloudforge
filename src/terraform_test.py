@@ -2,9 +2,10 @@ import pytest
 from .terraform_install import TerraformInstaller
 from pathlib import Path
 
+
 def test_terraform_installed():
     with TerraformInstaller() as tf:
-        assert tf.bin_path.endswith('terraform')
+        assert tf.bin_path.endswith("terraform")
 
 
 def test_terraform_uninstalled():
@@ -16,5 +17,5 @@ def test_terraform_uninstalled():
 
 def test_invalid_version():
     with pytest.raises(IndexError):
-        with TerraformInstaller(version='0.12.999') as tf:
+        with TerraformInstaller(version="0.12.999") as tf:
             pass
