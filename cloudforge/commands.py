@@ -9,7 +9,7 @@ from pathlib import Path
 from azure.identity import ClientSecretCredential
 
 
-from . import TMP_PATH, logger, TMP_DIR
+from . import TMP_PATH, logger, TMP_DIR, __version__, __packagename__
 from .tokenizer import Tokenizer
 from .terraform import TerraformBinWrapper
 from .terraform_install import TerraformInstaller
@@ -32,6 +32,11 @@ class BaseCommand:
 
     def setup(self):
         pass
+
+
+class VersionCommands(BaseCommand):
+    def execute(self):
+        print(f"Running {__packagename__}: {__version__}")
 
 
 class CleanCommands(BaseCommand):
@@ -189,8 +194,14 @@ class ECArgParser(ArgumentParser):
 
         self._setup_terraform_subcommand()
         self._setup_clean_subcommand()
+        self._setup_version_subcommand()
 
         return self.parse_args()
+
+    def _setup_version_subcommand(self):
+        version_subcmd = self.sub_parser.add_parser(
+            "version", help="Versioning information", prefix_chars="version-"
+        )
 
     def _setup_terraform_subcommand(self):
         tf_subcmd = self.sub_parser.add_parser(
@@ -214,8 +225,6 @@ class ECArgParser(ArgumentParser):
             help=f"Define the project directory that holds ECTF files. Default: {str(Path.cwd().absolute())}",
         )
 
-    def _setup_
-    
     def _setup_clean_subcommand(self):
         clean_subcmd = self.sub_parser.add_parser(
             "clean",
@@ -231,7 +240,11 @@ def execute():
     parser = ECArgParser(prog="ec")
     args = parser.init()
 
-    subcmd_mapping = {"tf": TerraformCommands, "clean": CleanCommands}
+    subcmd_mapping = {
+        "tf": TerraformCommands,
+        "clean": CleanCommands,
+        "version": VersionCommands,
+    }
 
     if args.verbose:
         logger.enable_debug()
