@@ -1,4 +1,4 @@
-from cloudforge.commands import execute
+from cloudforge.parser import execute
 
 
 if __name__ == "__main__":

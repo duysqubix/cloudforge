@@ -25,28 +25,13 @@ execute()
 ```
 """
 
-from argparse import ArgumentParser, Namespace
+from argparse import ArgumentParser
 from pathlib import Path
-from azure.identity import ClientSecretCredential
-from typing import Tuple, Dict, Union
-from pygments.lexers import find_lexer_class_by_name
-from pygments.formatters import find_formatter_class
 
-from . import TMP_PATH, logger, TMP_DIR, __version__, __packagename__
-from .tokenizer import Tokenizer
-from .terraform_install import TerraformInstaller, __TERRAFORM_VERSION__
-from .terraform_exec import Terraform
-from .keyvault import AzureKeyVault
-from .utils import EnvConfiguration
-
-import shutil
-import platform
-import os
-import sys
-import json
-import pygments
-
-
+from . import logger, __version__, __packagename__
+from .commands_terraform import TerraformCommands
+from .commands_azure import AzureCommands
+from .commands_base import VersionCommands, CleanCommands
 
 
 class CloudForgeArgParser(ArgumentParser):
