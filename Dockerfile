@@ -1,8 +1,12 @@
+FROM hashicorp/terraform:latest as terraform 
+
 # Use an official Python runtime as a parent image
 FROM python:3.9-slim-buster AS py
 
 # Set the working directory to /cli
 WORKDIR /cli
+
+COPY --from=terraform /bin/terraform /bin/terraform
 
 # Copy the poetry.lock and pyproject.toml files to the container
 COPY poetry.lock pyproject.toml VERSION /cli/

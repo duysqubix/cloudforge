@@ -15,14 +15,15 @@ DOCKER := docker
 SRC := cloudforge
 DIST := dist
 
-# Define targets
-
 # 'dev' target
-dev:
+dev: clean test
 	# Add a suffix to the project version to indicate development status
 	$(POETRY) version $(addsuffix -dev, $(VERSION))
+
 	# Install dependencies (excluding the root package) for development
-	$(POETRY) install --no-root --no-ansi
+	$(POETRY) build --no-ansi --no-interaction --format=wheel --quiet 
+	$(PYTHON) -m pip install $(DIST)/*.whl --force-reinstall
+	
 	# Build a Docker image for development and push it to the Docker registry
 	$(DOCKER) build -t $(DOCKER_IMAGE_DEV) .
 	$(DOCKER) push $(DOCKER_IMAGE_DEV)
@@ -33,14 +34,14 @@ test:
 	$(PYTEST) -v $(SRC)
 
 # 'build' target
-build:
+build: clean test
 	# Set the project version for production
 	$(POETRY) version $(VERSION)
-	# Install dependencies (excluding development dependencies) for production
-	$(POETRY) install --no-root --only main --sync --no-ansi
+
 	# Build a Docker image for production and push it to the Docker registry
 	$(DOCKER) build -t $(DOCKER_IMAGE_PROD) .
 	$(DOCKER) push $(DOCKER_IMAGE_PROD)
+
 	# Build and push a versioned Docker image to the Docker registry
 	$(DOCKER) build -t $(DOCKER_IMAGE):$(VERSION) .
 	$(DOCKER) push $(DOCKER_IMAGE):$(VERSION)
@@ -54,4 +55,4 @@ clean:
 	rm -rf $(DIST)
 
 # Set 'prod', 'dev', and 'clean' as phony targets
-.PHONY: prod dev clean
+.PHONY: prod dev clean  

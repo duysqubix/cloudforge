@@ -4,7 +4,7 @@ import logging
 import tempfile
 
 __packagename__ = "cloudforge"
-__version__ = "0.8.0"
+__version__ = "0.8.0-dev"
 
 VALID_ENVS = ["dev", "stg", "uat", "prod"]
 

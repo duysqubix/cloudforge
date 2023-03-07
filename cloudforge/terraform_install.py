@@ -1,11 +1,17 @@
+from pathlib import Path
+from typing import Optional
+
 import os
 import platform
 import requests
 import semantic_version
 import tempfile
 import zipfile
-from pathlib import Path
-from typing import Optional
+import shutil
+
+from . import logger
+
+__TERRAFORM_VERSION__ = "1.0.11"
 
 
 class TerraformInstaller:
@@ -150,7 +156,9 @@ class TerraformInstaller:
         """
         # delete binary to free up space
         if not self._keep_binary:
+            logger.warning("Removing terraform binary: %s" % self._tf_bin)
             os.remove(self._tf_bin)
+            shutil.rmtree(self._tf_bin.parent)
 
     @property
     def bin_path(self) -> str:
