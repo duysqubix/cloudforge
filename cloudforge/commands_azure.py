@@ -1,31 +1,99 @@
 from pygments.lexers import find_lexer_class_by_name
 from pygments.formatters import find_formatter_class
 
-from . import TMP_PATH, logger, TMP_DIR, __version__, __packagename__
+from typing import Any, Dict
+from . import logger, __version__, __packagename__
 from .commands_base import BaseCommand
+from .azure.synapse import SynapseActionTemplate
 
 
+import pyjson5 as json5
 import json
 import pygments
+import re
 
 
-class AzureCommands(BaseCommand):
-    __mapping__ = {"syn": "SynapseCommands"}
+class SynapseConvertCommand(BaseCommand):
+    def execute(self) -> None:
+        if self.format == "arm":
+            self._execute_convert_to_arm()
 
+    def _execute_convert_to_arm(self):
+        syn_workspace_dir = self.proj_dir
+        config_file = self.config
+
+        if not syn_workspace_dir.is_dir():
+            raise FileNotFoundError("Synapse Workspace not a valid directory")
+
+        if not config_file.is_file():
+            raise FileNotFoundError(
+                "Deployment configuration file not valid or missing"
+            )
+
+        config = json5.load(open(config_file))
+
+        syn_action_template = SynapseActionTemplate(config)
+
+        print(syn_action_template._map)
+
+        return
+        result = syn_action_template.process_synapse_workspace(
+            str(syn_workspace_dir), inplace=replace
+        )
+
+        pretty_print_modified_actions(result)
+
+        # transform Synapse JSON to ARM file
+
+        synm = SynManager(workspace_name="amerivetsynapseprod")  # change me
+        valid_resources = [
+            "linkedService",
+            "credential",
+            "trigger",
+            "dataset",
+            "notebook",
+            "integrationRuntime",
+            "pipeline",
+        ]
+
+        defaults: List[str] = []
+        for rtype in valid_resources:
+            for jfile in (syn_workspace_dir / rtype).glob("*.json"):
+                if "WorkspaceDefault" in jfile.name:
+                    defaults.append(jfile.name.replace(".json", ""))
+
+                with open(jfile, "r") as f:
+                    jdata = json.load(f)
+
+                    synm.add_resource(rtype, jdata)
+        armt: ArmTemplate = synm.convert_to_arm_objs()
+
+        dest_arm_path = self.output
+
+        with open(dest_arm_path, "w") as f:
+            jdata: str = json.dumps(armt.to_arm_json(), indent=2)  # type: ignore
+
+            ##### final pass through -- rename ALL Workspace names to the supplied one -- needed for dynamic environment change
+            for default in defaults:
+                _d = default.split("WorkspaceDefault")
+                _d[0] = args.workspace_name
+                modified = "-WorkspaceDefault".join(_d)
+
+                jdata = re.sub(default, modified, jdata)
+
+            f.write(jdata)
+            # json.dump(armt.to_arm_json(), f, indent=2)  #type: ignore
+
+
+class SynapsePrettifyCommand(BaseCommand):
     def execute(self):
-        subcmd = self._args.azsubcmd
+        """Prettify Synapse Notebook or Sqlscript."""
+        format_ = self.format
+        name = self.name
+        type_ = self.type
 
-        azsubcmd_callable = eval(self.__mapping__[subcmd])
-        azsubcmd_callable(self._args).execute()
-
-
-class SynapseCommands(AzureCommands):
-    def _execute_prettify_cmd(self):
-        format_ = self._args.format
-        name = self._args.name
-        type_ = self._args.type
-
-        jdata = json.load(open(name, "r"))
+        with open(name, "r") as f:
+            jdata = json.load(f)
 
         lang = (
             jdata.get("properties", {})
@@ -47,7 +115,7 @@ class SynapseCommands(AzureCommands):
             logger.critical("Unsupported Synapse Notebook/Sqlscript format")
             raise ValueError("Unsupported Synapse Notebook/Sqlscript format")
 
-        type_ = type_ if self._args.type is None else self._args.type
+        type_ = type_ if self.type is None else self.type
 
         logger.debug(
             (
@@ -79,14 +147,3 @@ class SynapseCommands(AzureCommands):
                 pretty_code += prettied_source + ("*" * 50) + "\n"
 
             print(pretty_code)
-
-    def execute(self):
-        syn_subcmd = self._args.azsynsubcmd
-
-        if syn_subcmd == "prettify":
-            self._execute_prettify_cmd()
-            return
-        elif syn_subcmd == "":
-            return
-
-        print("Please specificy Synapse subcommand")

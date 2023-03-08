@@ -1,4 +1,4 @@
-from .parser import execute
+from .cparser import execute
 
 if __name__ == "__main__":
     execute()

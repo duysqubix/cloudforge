@@ -73,9 +73,8 @@ class CloudForgeArgParser(ArgumentParser):
         )
 
         syn_parser = syn_subcmd.add_subparsers(
-            help="prettify stuff", dest="azsynsubcmd"
+            help="Synapse Related Subcommands", dest="azsynsubcmd"
         )
-
         # --prettify
         prettify_subcmd = syn_parser.add_parser(
             "prettify",
@@ -100,6 +99,21 @@ class CloudForgeArgParser(ArgumentParser):
             help="Choose type of file to parse",
             choices=["sql", "notebook"],
             dest="type",
+        )
+
+        # -- arm
+        arm_subcmd = syn_parser.add_parser(
+            "arm",
+            help="Convert Synapse Artifacts to ARM templates",
+            prefix_chars="az-syn-arm-",
+        )
+
+        arm_subcmd.add_argument(
+            "-t",
+            "--target-dir",
+            help="Path to synapse workspace directory",
+            required=True,
+            dest="arm_target_dir",
         )
 
     def _setup_azure_subcommand(self):

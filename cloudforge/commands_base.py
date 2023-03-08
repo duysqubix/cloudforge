@@ -1,5 +1,3 @@
-from argparse import Namespace
-
 from . import TMP_PATH, logger, TMP_DIR, __version__, __packagename__
 
 import shutil
@@ -8,20 +6,13 @@ import shutil
 class BaseCommand:
     """Base class for handling commands."""
 
-    def __init__(self, args: Namespace, skip_setup: bool = False) -> None:
-        """Initializes the BaseCommand class.
+    def __init__(self, **kwargs) -> None:
+        for k, v in kwargs.items():
+            self.__dict__[k] = v
 
-        Args:
-            args (Namespace): The arguments for the command.
-            skip_setup (bool): Whether to skip the setup method.
-        """
-        self._args: Namespace = args
-        logger.debug(self._args)
+        self.setup()
 
-        if not skip_setup:
-            self.setup()
-
-    def setup(self) -> None:
+    def setup(self):
         pass
 
     def execute(self) -> None:
@@ -43,20 +34,19 @@ class CleanCommands(BaseCommand):
         module_to_clean (str): The module to clean.
     """
 
-    def setup(self) -> None:
-        """Sets up the CleanCommands class."""
-        self.module_to_clean: str = self._args.module
-
     def execute(self) -> None:
         """Executes the clean command."""
-        if self.module_to_clean == "all":
+        if self.module == "all":
+            logger.debug("Cleaning all")
             self._clean_up_ectf_files()
 
-        elif self.module_to_clean == "ectf":
-            self._clean_up_ectf_files()
+        elif self.module == "cftf":
+            logger.debug("Cleaning cftf files")
 
-    def _clean_up_ectf_files(self) -> None:
-        """Cleans up the ectf files."""
+            self._clean_up_cftf_files()
+
+    def _clean_up_cftf_files(self) -> None:
+        """Cleans up the cftf files."""
         for fobj in TMP_DIR.glob("*"):
             if "terraform" in fobj.name:
                 if fobj.is_dir():

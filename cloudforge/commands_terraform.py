@@ -30,13 +30,13 @@ class TerraformCommands(BaseCommand):
 
     def setup(self) -> None:
         """Sets up the TerraformCommands class."""
-        self.targeted_action: str = self._args.action
+        self.targeted_action: str = self.action
 
-        self.tokenizer: Tokenizer = Tokenizer(self._args.proj_dir, "tf")
+        self.tokenizer: Tokenizer = Tokenizer(self.proj_dir, "tf")
         self.tokenizer.read_root()
 
         self.config: EnvConfiguration = EnvConfiguration.load_env(
-            self._args.env, self._args.proj_dir
+            self.env, self.proj_dir
         )
 
         vault_name: str = self.config.get("KEY_VAULT_NAME")

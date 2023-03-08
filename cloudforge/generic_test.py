@@ -1,8 +1,8 @@
-import logging
-import os
-
-from . import ECLogger, TMP_DIR
 from datetime import datetime
+from . import ECLogger, TMP_DIR
+
+
+import logging
 
 
 def test_default_log_level():
@@ -39,15 +39,6 @@ def test_disable_file_logging():
         if handler is logger1:
             exists = True
     assert exists == False
-
-
-# def test_log_file_exists():
-#     logger = ECLogger()
-#     logger.enable_file_logging()
-#     logger.warning("test file logging message")
-#     now = datetime.now().strftime("%Y%m%d")
-#     fname = f".{now}-ec.log"
-#     assert os.path.isfile(fname)
 
 
 def test_log_file_content():
