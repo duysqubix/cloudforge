@@ -81,7 +81,6 @@ class TerraformCommands(BaseCommand):
 
         options["raise_on_error"] = False
         options["capture_output"] = True
-
         ret_code, msg, err_msg = cmd(**options)
         if ret_code != 0:
             self._clean_up()

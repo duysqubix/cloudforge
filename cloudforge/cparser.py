@@ -1,8 +1,12 @@
 from pathlib import Path
 
-from . import logger
+from . import logger, VALID_ENVS
 from .commands_base import CleanCommands, VersionCommands
-from .commands_azure import SynapsePrettifyCommand, SynapseConvertCommand
+from .commands_azure import (
+    SynapsePrettifyCommand,
+    SynapseConvertCommand,
+    SynapseDeployArmCommand,
+)
 from .commands_terraform import TerraformCommands
 
 import click
@@ -23,11 +27,11 @@ def cloudforge(ctx, verbose):
 
 
 @cloudforge.command()
-@click.option(
-    "-m",
-    "--module",
-    type=click.Choice(["cftf", "all"], case_sensitive=True),
-    help="Clean up artifacts left by CloudForge",
+@click.argument(
+    "module",
+    nargs=1,
+    type=click.Choice(["all", "cftf", "syn"]),
+    required=True,
 )
 def clean(module):
     """
@@ -100,6 +104,34 @@ def prettify(name, format, type):
 
 
 @syn.command()
+@click.argument("arm_file", required=True, nargs=1, type=click.Path())
+@click.option("-e", "--env", help="Selected environment to deploy", required=False)
+@click.option(
+    "-c",
+    "--config",
+    help="Path to environment parameters config file",
+    required=False,
+    type=click.Path(),
+)
+def deploy(arm_file, env, config):
+    """
+    Deploy ARM files to a specific Synapse Workspae
+    """
+    click.echo("Deploy Not Supported Yet")
+    # arm_file = Path(arm_file).absolute()
+    # config_file = None if not config else Path(config)
+    # SynapseDeployArmCommand(
+    #     env=env, arm_file=arm_file, config_file=config_file
+    # ).execute()
+
+
+@syn.command()
+@click.argument(
+    "format",
+    type=click.Choice(["arm"]),
+    required=True,
+    nargs=1,
+)
 @click.option(
     "-d",
     "--proj-dir",
@@ -108,9 +140,6 @@ def prettify(name, format, type):
     type=click.Path(),
     default=Path.cwd().absolute(),
     show_default=True,
-)
-@click.option(
-    "-f", "--format", help="Converion format", type=click.Choice(["arm"]), required=True
 )
 @click.option(
     "-c",
@@ -126,15 +155,29 @@ def prettify(name, format, type):
     required=False,
     help="The name of the outputfile. Will be found in the same directory as suppled in --proj-dir",
 )
-def convert(proj_dir, format, config, output):
+@click.option(
+    "-e",
+    "--env",
+    help="Targeted Environment",
+    type=click.Choice(VALID_ENVS),
+    required=True,
+)
+def convert(proj_dir, format, config, output, env):
     """
     Convert Synapse Workspace Files into various formats .
     """
     proj_dir = Path(proj_dir)
     config = proj_dir / config
 
+    output_dir = Path.cwd().absolute()
+
     SynapseConvertCommand(
-        proj_dir=proj_dir, format=format, config=config, output=output
+        proj_dir=proj_dir,
+        format=format,
+        config=config,
+        output=output,
+        env=env,
+        output_dir=output_dir,
     ).execute()
 
 
@@ -149,14 +192,14 @@ def convert(proj_dir, format, config, output):
 @click.argument(
     "env",
     nargs=1,
-    type=click.Choice(["dev", "stg", "uat", "prod"]),
+    type=click.Choice(VALID_ENVS),
     required=True,
 )
 @click.option(
     "-d",
     "--proj-dir",
     help="Define the project directory that holds ECTF files. Default is the current working directory.",
-    default=Path.cwd().absolute(),
+    default=str(Path.cwd().absolute()),
     type=click.Path(),
 )
 def tf(action, env, proj_dir):
@@ -168,6 +211,7 @@ def tf(action, env, proj_dir):
         env: The environment to target. Must be "dev", "stg", "uat", or "prod".
         proj_dir: The project directory that holds ECTF files. Default is the current working directory.
     """
+    proj_dir = Path(proj_dir).absolute()
     TerraformCommands(action=action, env=env, proj_dir=proj_dir).execute()
 
 

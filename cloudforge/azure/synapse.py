@@ -1,5 +1,7 @@
 from typing import List, Optional
 from typing import Any, Dict, List, Optional
+from azure.identity import ClientSecretCredential
+from pathlib import Path
 
 from . import (
     RESOURCE_MAP,
@@ -8,20 +10,27 @@ from . import (
     AzResource,
     AzDependency,
     VALID_LINE_MAGIC_COMMANDS,
+    VALID_SYNAPSE_RESOURCES,
     logger,
 )
+from .. import TMP_DIR
+from ..tokenizer import Tokenizer
+from ..utils import EnvConfiguration
+from ..keyvault import AzureKeyVault
 
 from .arm import *
-from .jsonr import ActionTemplate, Action, ActionExecutioner
+from .action import ActionTemplate, Action, ActionExecutioner
 
 import pyjson5 as json5
+import json
+
 
 class SynapseActionTemplate(ActionTemplate):
     """
     A compilation of actions based on resource type
     """
 
-    def __init__(self, config_data: Dict[str, List[Dict[str, str]]]):
+    def setup(self):
         self._map: Dict[str, List[Action]] = {
             "linkedService": [],
             "trigger": [],
@@ -32,8 +41,9 @@ class SynapseActionTemplate(ActionTemplate):
             "pipeline": [],
         }
 
+    def parse(self):
         for rtype in self._map.keys():
-            config_resource: Optional[List[Dict[str, str]]] = config_data.get(
+            config_resource: Optional[List[Dict[str, str]]] = self._config_data.get(
                 str(rtype)
             )
 
@@ -47,32 +57,59 @@ class SynapseActionTemplate(ActionTemplate):
                 action_objs.append(act_obj)
 
             self._map[rtype].extend(action_objs)
+        return self
 
-    def process_synapse_workspace(
-        self, wkspace_root: str, inplace=False
-    ) -> Dict[Any, Any]:
-        changes = {}
+    def process(self, for_env) -> Dict[Any, Any]:
+        changes = {"resource_types": {}}
+
+        config = EnvConfiguration.load_env(for_env, self.syn_dir)
+
+        # read current synapse workspace into memory
+        tokenizer = Tokenizer(root_dir=self.syn_dir, ext="json").read_root()
+
+        # create a tmp copy for mutation
+        tmpdir = tokenizer.dump_to(
+            tokenizer.tree, dirpath=TMP_DIR / ".synapse-workspace", unique=True
+        )
 
         for rtype, actions in self._map.items():
-            resource_dir = wkspace_root + "/" + rtype + "/"
+            resource_dir = tmpdir / rtype
 
-            changes[rtype] = []
+            changes["resource_types"][rtype] = []
 
             for action in actions:
-                filename = resource_dir + action.name + ".json"
+                filename = resource_dir / (action.name + ".json")
                 with open(filename, "r+") as f:
                     target = json5.load(f)
 
                     ae = ActionExecutioner()
                     ae.execute(action, target)
 
-                    changes[rtype].append(ae.target)
+                    changes["resource_types"][rtype].append(ae.target)
 
-                if inplace:
-                    with open(filename, "w") as f:
-                        modifiedTarget = ae.target
-                        json5.dump(modifiedTarget, f)
+                with open(filename, "w") as f:
+                    modifiedTarget = ae.target
+                    logger.debug(f"Modifying......[{filename}]")
+                    json.dump(modifiedTarget, f, indent=2)
 
+        # switch tokenizer root and read into memory
+        tokenizer.root_dir = tmpdir
+        tokenizer.read_root()
+
+        vault_name: str = config.get("KEY_VAULT_NAME")
+
+        auth: ClientSecretCredential = ClientSecretCredential(
+            **config.get_terraform_creds()
+        )
+        tokens: Dict[str, str] = AzureKeyVault(vault_name, auth).get_secrets()
+
+        # get secrets from Key Vault
+        parsed_tree = tokenizer.replace_and_validate_tokens(tokens)
+
+        tmpdir = tokenizer.dump_to(parsed_tree, dirpath=tmpdir, unique=False)
+
+        changes["name"] = tokens["SynapseWorkspaceName"]
+        changes["tmpdir"] = tmpdir.absolute()
         return changes
 
     def __eq__(self, other):
@@ -83,9 +120,22 @@ class SynapseActionTemplate(ActionTemplate):
 
 
 class SynManager:
-    def __init__(self, workspace_name):
+    def __init__(self, workspace_name, syn_dir):
         self.workspace_name = workspace_name
         self.resources = {k: [] for k in SYN_RESOURCE_TO_OBJ.keys()}
+
+        syn_dir = Path(syn_dir)
+
+        defaults: List[str] = []
+        for rtype in VALID_SYNAPSE_RESOURCES:
+            for jfile in (syn_dir / rtype).glob("*.json"):
+                if "WorkspaceDefault" in jfile.name:
+                    defaults.append(jfile.name.replace(".json", ""))
+
+                with open(jfile, "r") as f:
+                    jdata = json.load(f)
+
+                    self.add_resource(rtype, jdata)
 
     def add_resource(self, rtype: str, jdata: dict):
         cls = eval(SYN_RESOURCE_TO_OBJ[rtype])
@@ -97,7 +147,7 @@ class SynManager:
     def convert_to_arm_objs(self) -> ArmTemplate:
         armt = SynArmTemplate(workspace_name=self.workspace_name)
         for rtype, res_lst in self.resources.items():
-            print(f"Converting.......{rtype}")
+            logger.debug(f"Converting.......{rtype}")
             for res in res_lst:
                 res.populate_dependencies()
                 armr = res.convert_to_arm(res)
@@ -229,7 +279,7 @@ class SynResource(AzResource, SyntoArmModule):
 
                 # ignore WorkSpaceDefault Dependencies
                 if "WorkspaceDefault" in name:
-                    print("Name AND TYPE: ", name, type)
+                    # print("Name AND TYPE: ", name, type)
                     ignore = True
 
                 dep = AzDependency(name, type_, ignore=ignore)

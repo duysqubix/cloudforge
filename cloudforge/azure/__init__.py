@@ -2,6 +2,17 @@ from __future__ import annotations
 
 from .. import logger
 
+VALID_SYNAPSE_RESOURCES = [
+    "linkedService",
+    "credential",
+    "trigger",
+    "dataset",
+    "notebook",
+    "integrationRuntime",
+    "pipeline",
+    "sqlscript",
+]
+
 
 class AzResource:
     """

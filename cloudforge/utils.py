@@ -9,6 +9,8 @@ ec.read_and_parse()
 arms = ec.get_arms()
 """
 
+from . import logger
+
 from typing import Dict, Optional
 from pathlib import Path
 from copy import deepcopy
@@ -97,17 +99,65 @@ class EnvConfiguration:
             "tenant_id": tenant_id,
         }
 
+    def get_azure_sp_creds(self):
+        return self.get_terraform_creds()
+
     @classmethod
-    def load_env(cls, env: str, proj_dir: Path):
-        config_file: Path = Path(proj_dir)
+    def load_env(
+        cls, env: Optional[str] = None, target_dir_or_file: Optional[Path] = None
+    ) -> "EnvConfiguration":
+        """
+        Loads environment configuration from a file or existing environment variables.
 
-        config_file /= f".env.{env}"  # this will dynamically look for the environment based on the `env` supplied
+        Args:
+            env: Optional[str]: Environment name (e.g. 'prod', 'dev', 'test', etc.) used to construct the
+                                configuration file name. If `target_dir_or_file` is a directory, `env`
+                                must be supplied.
 
+            target_dir_or_file: Optional[Path]:
+                                Target directory or file to load the configuration from.
+                                If `target_dir_or_file` is None, authentication parameters must be set in environment variables.
+
+        Raises:
+            EnvironmentError: When authentication parameters are not set in environment variables or supplied config file.
+            ValueError: When `target_dir_or_file` is a directory and `env` is not supplied.
+            FileNotFoundError: When the configuration file is not found.
+
+        Returns:
+            EnvConfiguration: An instance of `EnvConfiguration` class with the parsed configuration.
+        """
+        target = target_dir_or_file
         use_arm_env = os.getenv("ARM_VARS_USE_EXISTING")
 
+        # Check if authentication parameters are set
+        if (not use_arm_env) and (not target):
+            raise EnvironmentError(
+                "Authentication parameters are not set in environment variables or supplied config file"
+            )
+        config_file = None
+        # Check if target is a file or directory
+        if target:
+            target = Path(target)
+
+            if target.is_file():
+                config_file = Path(target)
+            else:
+                # Check if env is supplied when target is a directory
+                if env is None:
+                    raise ValueError(
+                        "target detected a directory, must supply env parameter"
+                    )
+                config_file = Path(target) / f".env.{env}"
+            logger.debug(f"ENV: {env}, CONFIG_FILE: {config_file}")
+
+            # Check if the configuration file exists
+            if not config_file.is_file():
+                raise FileNotFoundError("config file not found: %s" % config_file)
+
+        # Load the configuration
         if not use_arm_env:
-            if config_file == Path(proj_dir):
-                raise FileNotFoundError("config not set properly: %s" % config_file)
+            if not config_file:
+                raise EnvironmentError("ARM_USE_EXISTING not set")
             config = cls(fpath=str(config_file.absolute()))
         else:
             config = cls(fpath=None)

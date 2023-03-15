@@ -52,6 +52,7 @@ from pathlib import Path
 
 import re
 import uuid
+import shutil
 
 
 _TOKEN_RE = re.compile(r"{{__([^\n\r\t, ]*?)__}}")
@@ -121,11 +122,15 @@ class Tokenizer:
 
     def read_root(self) -> None:
         """Traverses the root directory and reads the content of the files.
+        Returns:
+            self
 
         Raises:
             OSError: If an error occurs while traversing the directory tree.
         """
+        self.tree.clear()
         self._traverse_directory(self.root_dir, self.ext)
+        return self
 
     def replace_tokens(self, tokens: Dict[str, str]) -> Dict[str, str]:
         """Replaces tokens in the parsed content with their corresponding values.
@@ -142,6 +147,7 @@ class Tokenizer:
             for token, value in tokens.items():
                 pattern = "{{__" + token + "__}}"
                 if pattern in fcontent:
+                    logger.debug(f"Replacing token: {pattern}")
                     parsed_content = parsed_content.replace(pattern, value, -1)
 
             tree_parsed[fpath] = parsed_content
@@ -203,7 +209,7 @@ class Tokenizer:
                 if fobj.is_file():
                     fobj.unlink()
                 elif fobj.is_dir():
-                    fobj.rmdir()
+                    shutil.rmtree(fobj)
 
         root_dir_str = str(self.root_dir.absolute())
         for fpath, fcontent in tree.items():

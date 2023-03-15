@@ -64,12 +64,27 @@ class Action:
     def __neq__(self, other):
         return not self.__eq__(other)
 
+    def __repr__(self):
+        return f"<{self.name}:{self.action}>"
+
+    def __str__(self):
+        return self.__repr__()
+
 
 class ActionTemplate:
-    pass
+    def __init__(self, config_data: Dict[str, List[Dict[str, str]]], **kwargs) -> None:
+        self._config_data = config_data
 
+        if not self._config_data:
+            raise ValueError("Config data not set.")
 
+        for k, v in kwargs.items():
+            self.__dict__[k] = v
 
+        self.setup()
+
+    def setup(self):
+        pass
 
 
 class ActionExecutioner:

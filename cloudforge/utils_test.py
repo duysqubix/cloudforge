@@ -1,5 +1,8 @@
 import os
+import pytest
+
 from tempfile import NamedTemporaryFile
+from unittest.mock import MagicMock
 
 from .utils import EnvConfiguration
 
@@ -57,3 +60,45 @@ def test_get_arms():
 
     # Verify
     assert arms == expected_arms
+
+
+@pytest.fixture
+def mock_config_file(tmp_path):
+    file = tmp_path / "config.txt"
+    file.write_text("a=b")
+    return file
+
+
+@pytest.fixture
+def mock_env_variables(monkeypatch):
+    monkeypatch.setenv("ARM_VARS_USE_EXISTING", "True")
+    return True
+
+
+def test_load_env_with_file(mock_config_file):
+    config = EnvConfiguration.load_env(target_dir_or_file=mock_config_file)
+    assert config is not None
+
+
+def test_load_env_with_dir_and_env(mock_config_file):
+    env = "test"
+    dir_path = mock_config_file.parent
+    config_dir = dir_path / "config"
+    config_dir.mkdir()
+    config_file = config_dir / f".env.{env}"
+    config_file.write_text("a=b\nc=d")
+    config = EnvConfiguration.load_env(env=env, target_dir_or_file=config_dir)
+    assert config is not None
+
+
+def test_load_env_with_missing_file():
+    with pytest.raises(ValueError):
+        EnvConfiguration.load_env(target_dir_or_file="missing_file.txt")
+
+
+def test_load_env_with_dir_missing_env(mock_config_file):
+    dir_path = mock_config_file.parent
+    config_dir = dir_path / "doesnotexist"
+    config_dir.mkdir()
+    with pytest.raises(ValueError):
+        EnvConfiguration.load_env(target_dir_or_file=config_dir, env=None)

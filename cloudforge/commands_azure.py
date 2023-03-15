@@ -1,16 +1,75 @@
-from pygments.lexers import find_lexer_class_by_name
-from pygments.formatters import find_formatter_class
-
-from typing import Any, Dict
-from . import logger, __version__, __packagename__
-from .commands_base import BaseCommand
-from .azure.synapse import SynapseActionTemplate
-
-
-import pyjson5 as json5
 import json
 import pygments
+import pyjson5 as json5
+from faker import Faker
+from typing import List, Dict
+from azure.identity import ClientSecretCredential
+from azure.mgmt.resource import ResourceManagementClient
+from azure.mgmt.resource.resources.models import DeploymentMode
+
+
+from . import __packagename__, __version__, logger
+from .azure import VALID_SYNAPSE_RESOURCES
+from .azure.arm import ArmTemplate
+from .azure.synapse import SynapseActionTemplate, SynManager
+from .commands_base import BaseCommand
+from .utils import EnvConfiguration
+from .keyvault import AzureKeyVault
+
+from pygments.formatters import find_formatter_class
+from pygments.lexers import find_lexer_class_by_name
 import re
+
+
+class SynapseDeployArmCommand(BaseCommand):
+    def setup(self):
+        self.faker = Faker()
+
+        if not self.config_file:  # assuming stuff is in osenv
+            config = EnvConfiguration.load_env()
+        else:
+            config = EnvConfiguration.load_env(target_dir_or_file=self.config_file)
+
+        vault_name: str = config.get("KEY_VAULT_NAME")
+
+        auth: ClientSecretCredential = ClientSecretCredential(
+            **config.get_azure_sp_creds()
+        )
+        tokens: Dict[str, str] = AzureKeyVault(vault_name, auth).get_secrets()
+
+        self.subscription_id = config.get("ARM_SUBSCRIPTION_ID")
+        self.resource_group_name = tokens.get("ResourceGroupName")
+        self.deployment_name = self._create_deployment_name()
+        self.creds = auth
+
+    def _create_deployment_name(self):
+        return (
+            f"{self.faker.color_name()}-{self.faker.city_suffix()}-{self.faker.bban()}"
+        )
+
+    def execute(self) -> None:
+        if not self.arm_file.is_file():
+            raise FileNotFoundError("Arm template file not found")
+        resource_management_client = ResourceManagementClient(
+            self.creds, self.subscription_id
+        )
+
+        template = open(self.arm_file, "r").read()
+
+        deployment_properties = {
+            "properties": {
+                "mode": DeploymentMode.INCREMENTAL,
+                "template": template,
+                "parameters": {},
+            }
+        }
+        print(json.dumps(deployment_properties, indent=2))
+        # deployment_async_op = (
+        #     resource_management_client.deployments.begin_create_or_update(
+        #         self.resource_group_name, self.deployment_name, deployment_properties
+        #     )
+        # )
+        # deployment_async_op.wait()
 
 
 class SynapseConvertCommand(BaseCommand):
@@ -19,10 +78,9 @@ class SynapseConvertCommand(BaseCommand):
             self._execute_convert_to_arm()
 
     def _execute_convert_to_arm(self):
-        syn_workspace_dir = self.proj_dir
         config_file = self.config
 
-        if not syn_workspace_dir.is_dir():
+        if not self.proj_dir.is_dir():
             raise FileNotFoundError("Synapse Workspace not a valid directory")
 
         if not config_file.is_file():
@@ -32,57 +90,36 @@ class SynapseConvertCommand(BaseCommand):
 
         config = json5.load(open(config_file))
 
-        syn_action_template = SynapseActionTemplate(config)
+        syn_action_template = SynapseActionTemplate(
+            config, syn_dir=self.proj_dir
+        ).parse()
 
-        print(syn_action_template._map)
-
-        return
-        result = syn_action_template.process_synapse_workspace(
-            str(syn_workspace_dir), inplace=replace
-        )
-
-        pretty_print_modified_actions(result)
-
+        resp = syn_action_template.process(for_env=self.env)
         # transform Synapse JSON to ARM file
+        syn_workspace_name = resp["name"]
+        syn_dir = resp["tmpdir"]
+        synm = SynManager(workspace_name=syn_workspace_name, syn_dir=syn_dir)
 
-        synm = SynManager(workspace_name="amerivetsynapseprod")  # change me
-        valid_resources = [
-            "linkedService",
-            "credential",
-            "trigger",
-            "dataset",
-            "notebook",
-            "integrationRuntime",
-            "pipeline",
-        ]
-
-        defaults: List[str] = []
-        for rtype in valid_resources:
-            for jfile in (syn_workspace_dir / rtype).glob("*.json"):
-                if "WorkspaceDefault" in jfile.name:
-                    defaults.append(jfile.name.replace(".json", ""))
-
-                with open(jfile, "r") as f:
-                    jdata = json.load(f)
-
-                    synm.add_resource(rtype, jdata)
         armt: ArmTemplate = synm.convert_to_arm_objs()
 
-        dest_arm_path = self.output
+        if self.output:
+            output_path = self.output_dir / self.output
+        else:
+            output_path = self.output_dir / "synapseArm.json"
 
-        with open(dest_arm_path, "w") as f:
-            jdata: str = json.dumps(armt.to_arm_json(), indent=2)  # type: ignore
+        jdata: str = json.dumps(armt.to_arm_json(), indent=2)  # type: ignore
 
-            ##### final pass through -- rename ALL Workspace names to the supplied one -- needed for dynamic environment change
-            for default in defaults:
-                _d = default.split("WorkspaceDefault")
-                _d[0] = args.workspace_name
-                modified = "-WorkspaceDefault".join(_d)
+        ##### final pass through -- rename ALL Workspace names to the supplied one -- needed for dynamic environment change
+        for default in defaults:
+            _d = default.split("WorkspaceDefault")
+            _d[0] = syn_workspace_name
+            modified = "-WorkspaceDefault".join(_d)
 
-                jdata = re.sub(default, modified, jdata)
+            jdata = re.sub(default, modified, jdata)
 
+        with open(output_path, "w") as f:
+            logger.debug(f"Writing final dynamic ARM to {output_path}")
             f.write(jdata)
-            # json.dump(armt.to_arm_json(), f, indent=2)  #type: ignore
 
 
 class SynapsePrettifyCommand(BaseCommand):
