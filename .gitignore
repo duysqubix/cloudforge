@@ -1,0 +1,10 @@
+.syntest
+.tftest
+bin
+.venv
+__pycache__
+*.spec
+*.zip
+.spectest 
+.pytest_cache
+.mypy_cache
