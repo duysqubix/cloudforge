@@ -128,36 +128,36 @@ class EnvConfiguration:
         """
         target = target_dir_or_file
         use_arm_env = os.getenv("ARM_VARS_USE_EXISTING")
+        logger.debug("Use ARM VARS: %s" % use_arm_env)
 
         # Check if authentication parameters are set
         if (not use_arm_env) and (not target):
             raise EnvironmentError(
                 "Authentication parameters are not set in environment variables or supplied config file"
             )
-        config_file = None
-        # Check if target is a file or directory
-        if target:
-            target = Path(target)
+        config_file: Optional[Path] = None
 
-            if target.is_file():
-                config_file = Path(target)
-            else:
-                # Check if env is supplied when target is a directory
-                if env is None:
-                    raise ValueError(
-                        "target detected a directory, must supply env parameter"
-                    )
-                config_file = Path(target) / f".env.{env}"
-            logger.debug(f"ENV: {env}, CONFIG_FILE: {config_file}")
-
-            # Check if the configuration file exists
-            if not config_file.is_file():
-                raise FileNotFoundError("config file not found: %s" % config_file)
-
-        # Load the configuration
         if not use_arm_env:
-            if not config_file:
-                raise EnvironmentError("ARM_USE_EXISTING not set")
+            # Check if target is a file or directory
+            if target:
+                target = Path(target)
+
+                if target.is_file():
+                    config_file = Path(target)
+                else:
+                    # Check if env is supplied when target is a directory
+                    if env is None:
+                        raise ValueError(
+                            "target detected a directory, must supply env parameter"
+                        )
+                    config_file = Path(target) / f".env.{env}"
+                logger.debug(f"ENV: {env}, CONFIG_FILE_OR_DIR: {config_file}")
+
+                # Check if the configuration file exists
+                if not config_file.is_file():
+                    raise FileNotFoundError("config file not found: %s" % config_file)
+
+        if not use_arm_env:
             config = cls(fpath=str(config_file.absolute()))
         else:
             config = cls(fpath=None)

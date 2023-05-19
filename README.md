@@ -20,7 +20,5 @@ Now you can run your commands. Here are some samples.
 To manage cloudtf files you need to supply a env file
 
 ```bash
-docker run --env-file .env.dev \
-    -v $PWD/.tftest:/cli/.tftest \
-    qubixds/cloudforge:dev tf -v validate dev -d .tftest/
+docker run --rm -e ARM_VARS_USE_EXISTING=1 --env-file .env.dev -v $PWD:/cli/.tftest qubixds/cloudforge:dev -v tf validate dev -d .tftest/
 ```
