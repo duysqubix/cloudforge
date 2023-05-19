@@ -9,7 +9,7 @@ ec.read_and_parse()
 arms = ec.get_arms()
 """
 
-from . import logger
+from . import logger, raise_error
 
 from typing import Dict, Optional
 from pathlib import Path
@@ -132,8 +132,10 @@ class EnvConfiguration:
 
         # Check if authentication parameters are set
         if (not use_arm_env) and (not target):
-            raise EnvironmentError(
-                "Authentication parameters are not set in environment variables or supplied config file"
+            raise_error(
+                EnvironmentError(
+                    "Authentication parameters are not set in environment variables or supplied config file"
+                )
             )
         config_file: Optional[Path] = None
 

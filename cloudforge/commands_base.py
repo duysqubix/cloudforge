@@ -1,6 +1,7 @@
 from . import TMP_PATH, logger, TMP_DIR, __version__, __packagename__
 
 import shutil
+import sys
 
 
 class BaseCommand:
@@ -17,7 +18,7 @@ class BaseCommand:
 
     def execute(self) -> None:
         pass
-
+    
 
 class VersionCommands(BaseCommand):
     """Class for handling version commands."""

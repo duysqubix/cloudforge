@@ -6,6 +6,7 @@ from .commands_azure import (
     SynapsePrettifyCommand,
     SynapseConvertCommand,
     SynapseDeployArmCommand,
+    SynapseSQLDeployCommand,
 )
 from .commands_terraform import TerraformCommands
 
@@ -104,6 +105,35 @@ def prettify(name, format, type):
 
 
 @syn.command()
+@click.option(
+    "-t",
+    "--target-dir",
+    required=True,
+    help="Target directory where synapse sql scripts are stored",
+)
+@click.option(
+    "-d",
+    "--database-uri",
+    required=True,
+    help="Name of dedicated SQL pool in a workspace://database format",
+)
+@click.option("-u", "--username", required=True, help="Username to access database")
+@click.option("-p", "--password", required=True, help="Password to access database")
+@click.option("-e", "--env", required=True, help="Targeted environment")
+@click.option("-c", "--config", required=False, help="Path to config file")
+def deploySQL(target_dir, database_uri, username, password, env, config):
+    """Deploy SQL scripts to dedicated SQL pool"""
+    SynapseSQLDeployCommand(
+        target_dir=target_dir,
+        database_uri=database_uri,
+        username=username,
+        password=password,
+        env=env,
+        config=config,
+    ).execute()
+
+
+@syn.command()
 @click.argument("arm_file", required=True, nargs=1, type=click.Path())
 @click.option("-e", "--env", help="Selected environment to deploy", required=False)
 @click.option(
@@ -113,7 +143,7 @@ def prettify(name, format, type):
     required=False,
     type=click.Path(),
 )
-def deploy(arm_file, env, config):
+def deployarm(arm_file, env, config):
     """
     Deploy ARM files to a specific Synapse Workspae
     """

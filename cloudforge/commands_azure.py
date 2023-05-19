@@ -2,40 +2,57 @@ import json
 import pygments
 import pyjson5 as json5
 from faker import Faker
-from typing import List, Dict
+from typing import List, Dict, Optional
 from azure.identity import ClientSecretCredential
 from azure.mgmt.resource import ResourceManagementClient
 from azure.mgmt.resource.resources.models import DeploymentMode
+from pathlib import Path
 
-
-from . import __packagename__, __version__, logger
+from . import __packagename__, __version__, logger, lazy_property
 from .azure import VALID_SYNAPSE_RESOURCES
 from .azure.arm import ArmTemplate
 from .azure.synapse import SynapseActionTemplate, SynManager
 from .commands_base import BaseCommand
 from .utils import EnvConfiguration
 from .keyvault import AzureKeyVault
+from .tokenizer import Tokenizer
 
 from pygments.formatters import find_formatter_class
 from pygments.lexers import find_lexer_class_by_name
 import re
 
 
-class SynapseDeployArmCommand(BaseCommand):
-    def setup(self):
-        self.faker = Faker()
+class AzureBaseCommand(BaseCommand):
+    def __init__(self, **kwargs) -> None:
+        self.env = None
+        self.config_file = None
+        super().__init__(**kwargs)
 
-        if not self.config_file:  # assuming stuff is in osenv
+        self.setup()
+
+    @lazy_property
+    def key_vault_secrets(self):
+        if not self.env:
+            self.raise_error(ValueError("Environment not specified"))
+
+        if not self.config:  # assuming stuff is in osenv
             config = EnvConfiguration.load_env()
         else:
-            config = EnvConfiguration.load_env(target_dir_or_file=self.config_file)
+            config = EnvConfiguration.load_env(target_dir_or_file=self.config)
 
-        vault_name: str = config.get("KEY_VAULT_NAME")
+        vault_name: Optional[str] = config.get("KEY_VAULT_NAME")
 
         auth: ClientSecretCredential = ClientSecretCredential(
             **config.get_azure_sp_creds()
         )
         tokens: Dict[str, str] = AzureKeyVault(vault_name, auth).get_secrets()
+        return tokens, config
+
+
+class SynapseDeployArmCommand(AzureBaseCommand):
+    def setup(self):
+        self.faker = Faker()
+        tokens, config = self.get_key_vault_secrets()
 
         self.subscription_id = config.get("ARM_SUBSCRIPTION_ID")
         self.resource_group_name = tokens.get("ResourceGroupName")
@@ -72,7 +89,7 @@ class SynapseDeployArmCommand(BaseCommand):
         # deployment_async_op.wait()
 
 
-class SynapseConvertCommand(BaseCommand):
+class SynapseConvertCommand(AzureBaseCommand):
     def execute(self) -> None:
         if self.format == "arm":
             self._execute_convert_to_arm()
@@ -122,7 +139,76 @@ class SynapseConvertCommand(BaseCommand):
             f.write(jdata)
 
 
-class SynapsePrettifyCommand(BaseCommand):
+class SynapseSQLDeployCommand(AzureBaseCommand):
+    def setup(self) -> None:
+        self.target_dir = Path(self.target_dir)
+        self.tokens = self.key_vault_secrets
+        self.tokenizer: Tokenizer = Tokenizer(self.target_dir, "json")
+        self.tokenizer.read_root()
+
+    """Deploy SQL Scripts"""
+
+    def execute(self):
+        target_dir = self.target_dir
+        database_uri = self.database_uri.split("://")
+        username = self.username
+        password = self.password
+
+        print(self.tokens)
+        # if len(database_uri) != 2:
+        #     self.raise_error(
+        #         ValueError(
+        #             "Database URI must be in the format of `worksapce://<database_name>`, %s"
+        #             % database_uri
+        #         )
+        #     )
+
+        # scripts_path = Path(target_dir)
+
+        # scripts = []
+        # for script in scripts_path.glob("*.json"):
+        #     with open(script, "r") as f:
+        #         jdata = json.load(f)
+        #         query = jdata["properties"]["content"]["query"]
+        #         folder = jdata.get("properties", {}).get("folder", {}).get("name")
+
+        #         keep = False
+        #         if "etl_objects" in folder:
+        #             keep = True
+
+        #         if "migrations" in folder:
+        #             keep = True
+
+        #         if not keep:
+        #             logger.debug(
+        #                 f"Skipping {script.name} as it is not in a valid folder"
+        #             )
+        #             continue
+
+        #         scripts.append(
+        #             {
+        #                 "query": query,
+        #                 "name": script.name.split(".")[0],
+        #                 "folder": folder,
+        #             }
+        #         )
+
+        # if not scripts:
+        #     self.raise_error(ValueError("No valid scripts found in `%s`" % target_dir))
+
+        # migrations = []
+        # etl_objects = []
+        # for script in scripts:
+        #     if script["folder"] == "migrations":
+        #         migrations.append(script)
+        #     if "etl_objects" in script["folder"]:
+        #         etl_objects.append(script)
+
+        # print(migrations)
+        # print(etl_objects)
+
+
+class SynapsePrettifyCommand(AzureBaseCommand):
     def execute(self):
         """Prettify Synapse Notebook or Sqlscript."""
         format_ = self.format

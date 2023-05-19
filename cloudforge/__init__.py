@@ -1,6 +1,7 @@
 from pathlib import Path
 from datetime import datetime
 import logging
+import sys
 import tempfile
 
 __packagename__ = "cloudforge"
@@ -88,5 +89,68 @@ class ECLogger:
     def critical(self, msg, *args, **kwargs):
         self.logger.critical(msg, *args, **kwargs)
 
+
+# lazy load handler
+_missing = object()
+
+
+class lazy_property:
+    """
+    Delays loading of property until first access. Credit goes to the
+    Implementation in the werkzeug suite:
+    http://werkzeug.pocoo.org/docs/utils/#werkzeug.utils.cached_property
+    This should be used as a decorator in a class and in Evennia is
+    mainly used to lazy-load handlers:
+        ```python
+        @lazy_property
+        def attributes(self):
+            return AttributeHandler(self)
+        ```
+    Once initialized, the `AttributeHandler` will be available as a
+    property "attributes" on the object. This is read-only since
+    this functionality is pretty much exclusively used by handlers.
+    """
+
+    def __init__(self, func, name=None, doc=None):
+        """Store all properties for now"""
+        self.__name__ = name or func.__name__
+        self.__module__ = func.__module__
+        self.__doc__ = doc or func.__doc__
+        self.func = func
+
+    def __get__(self, obj, type=None):
+        """Triggers initialization"""
+        if obj is None:
+            return self
+        value = obj.__dict__.get(self.__name__, _missing)
+        if value is _missing:
+            value = self.func(obj)
+        obj.__dict__[self.__name__] = value
+        return value
+
+    def __set__(self, obj, value):
+        """Protect against setting"""
+        handlername = self.__name__
+        raise AttributeError(
+            _(
+                "{obj}.{handlername} is a handler and can't be set directly. "
+                "To add values, use `{obj}.{handlername}.add()` instead."
+            ).format(obj=obj, handlername=handlername)
+        )
+
+    def __delete__(self, obj):
+        """Protect against deleting"""
+        handlername = self.__name__
+        raise AttributeError(
+            _(
+                "{obj}.{handlername} is a handler and can't be deleted directly. "
+                "To remove values, use `{obj}.{handlername}.remove()` instead."
+            ).format(obj=obj, handlername=handlername)
+        )
+
+def raise_error(error: Exception) -> None:
+    """Raises an error."""
+    logger.error(error)
+    sys.exit(1)
 
 logger = ECLogger()
