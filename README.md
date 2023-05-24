@@ -1,3 +1,5 @@
+[![CI](https://github.com/duysqubix/cloudforge/actions/workflows/main.yml/badge.svg)](https://github.com/duysqubix/cloudforge/actions/workflows/main.yml)
+
 # Cloud Forge 
 Manage Azure by providing tools to validate and deploy
 infrastructure
