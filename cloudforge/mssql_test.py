@@ -309,3 +309,77 @@ DependsOn: [file3.sql]
 
     with pytest.raises(ValueError, match="Multiple DependsOn statements found"):
         db_object = DBObject("file1.sql", content)
+
+
+def test_db_object_resolver_nested_dependencies():
+    db_objects_dict = {
+        "file1.sql": "CREATE TABLE users (id INT); /* DependsOn: [] */",
+        "file2.sql": "ALTER TABLE users ADD name VARCHAR(255); /* DependsOn: [file1.sql] */",
+        "file3.sql": "SELECT * FROM users; /* DependsOn: [file1.sql, file2.sql] */",
+    }
+
+    resolver = DBObjectResolver(db_objects_dict)
+    execution_order = resolver.get_execution_order()
+
+    orders = {
+        "file1.sql": 0,
+        "file2.sql": 0,
+        "file3.sql": 0,
+    }
+
+    for idx, filename in enumerate(execution_order):
+        orders[filename] = idx
+
+    # Check dependencies' order
+    assert orders["file1.sql"] < orders["file2.sql"]
+    assert orders["file1.sql"] < orders["file3.sql"]
+    assert orders["file2.sql"] < orders["file3.sql"]
+    
+def test_db_object_resolver_nested_multiple_dependencies():
+    db_objects_dict = {
+        "file1.sql": "/* DependsOn: [] */",
+        "file2.sql": "/* DependsOn: [] */",
+        "file3.sql": "/* DependsOn: [file1.sql, file2.sql] */",
+        "file4.sql": "/* DependsOn: [file1.sql, file2.sql] */",
+        "file5.sql": "/* DependsOn: [file4.sql] */",
+        "file6.sql": "/* DependsOn: [file3.sql, file5.sql] */",
+    }
+
+    resolver = DBObjectResolver(db_objects_dict)
+    execution_order = resolver.get_execution_order()
+
+    orders = {
+        "file1.sql": 0,
+        "file2.sql": 0,
+        "file3.sql": 0,
+        "file4.sql": 0,
+        "file5.sql": 0,
+        "file6.sql": 0,
+    }
+
+    for idx, filename in enumerate(execution_order):
+        orders[filename] = idx
+
+    # Check dependencies' order
+    assert orders["file1.sql"] < orders["file3.sql"]
+    assert orders["file2.sql"] < orders["file3.sql"]
+    assert orders["file1.sql"] < orders["file4.sql"]
+    assert orders["file2.sql"] < orders["file4.sql"]
+    assert orders["file4.sql"] < orders["file5.sql"]
+    assert orders["file3.sql"] < orders["file6.sql"]
+    assert orders["file5.sql"] < orders["file6.sql"]
+
+def test_db_object_resolver_circular_dependency_multiple_nested():
+    db_objects_dict = {
+        "file1.sql": "/* DependsOn: [] */",
+        "file2.sql": "/* DependsOn: [file5.sql] */",
+        "file3.sql": "/* DependsOn: [file1.sql, file2.sql] */",
+        "file4.sql": "/* DependsOn: [file1.sql, file2.sql] */",
+        "file5.sql": "/* DependsOn: [file4.sql] */",
+        "file6.sql": "/* DependsOn: [file3.sql, file5.sql] */",
+    }
+
+    with pytest.raises(ValueError, match="Circular dependency detected"):
+        resolver = DBObjectResolver(db_objects_dict)
+        resolver.get_execution_order()
+
