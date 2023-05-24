@@ -1,5 +1,6 @@
 import json
 import pygments
+import os
 import pyjson5 as json5
 from faker import Faker
 from typing import List, Dict, Optional
@@ -8,7 +9,13 @@ from azure.mgmt.resource import ResourceManagementClient
 from azure.mgmt.resource.resources.models import DeploymentMode
 from pathlib import Path
 
-from . import __packagename__, __version__, logger, lazy_property
+from . import (
+    __packagename__,
+    __version__,
+    logger,
+    lazy_property,
+    SYNAPSE_ANALYTICS_DB_SETUP_SCRIPT_NAME,
+)
 from .azure import VALID_SYNAPSE_RESOURCES
 from .azure.arm import ArmTemplate
 from .azure.synapse import SynapseActionTemplate, SynManager
@@ -16,6 +23,7 @@ from .commands_base import BaseCommand
 from .utils import EnvConfiguration
 from .keyvault import AzureKeyVault
 from .tokenizer import Tokenizer
+from .mssql import SynapseAnalyticsConnection, Migration
 
 from pygments.formatters import find_formatter_class
 from pygments.lexers import find_lexer_class_by_name
@@ -150,62 +158,80 @@ class SynapseSQLDeployCommand(AzureBaseCommand):
 
     def execute(self):
         target_dir = self.target_dir
-        database_uri = self.database_uri.split("://")
         username = self.username
         password = self.password
+        options = self.db_options
 
-        print(self.tokens)
-        # if len(database_uri) != 2:
-        #     self.raise_error(
-        #         ValueError(
-        #             "Database URI must be in the format of `worksapce://<database_name>`, %s"
-        #             % database_uri
-        #         )
-        #     )
+        if not target_dir.is_dir():
+            logger.error("Target directory is not a valid directory")
+        
+        
+        db_con = SynapseAnalyticsConnection(
+            database_uri=self.database_uri,
+            username=username,
+            password=password,
+            **options,
+        )
 
-        # scripts_path = Path(target_dir)
+        scripts_path = Path(target_dir)
 
-        # scripts = []
-        # for script in scripts_path.glob("*.json"):
-        #     with open(script, "r") as f:
-        #         jdata = json.load(f)
-        #         query = jdata["properties"]["content"]["query"]
-        #         folder = jdata.get("properties", {}).get("folder", {}).get("name")
+        scripts = []
+        for script in scripts_path.glob("*.json"):
+            with open(script, "r") as f:
+                jdata = json.load(f)
+                query = jdata["properties"]["content"]["query"]
+                folder = jdata.get("properties", {}).get("folder", {}).get("name")
+                database = (
+                    jdata.get("properties", {})
+                    .get("content", {})
+                    .get("currentConnection", {})
+                    .get("databaseName")
+                )
 
-        #         keep = False
-        #         if "etl_objects" in folder:
-        #             keep = True
+                keep = False
+                if "etl_objects" in folder:
+                    keep = True
 
-        #         if "migrations" in folder:
-        #             keep = True
+                if "migrations" in folder:
+                    keep = True
 
-        #         if not keep:
-        #             logger.debug(
-        #                 f"Skipping {script.name} as it is not in a valid folder"
-        #             )
-        #             continue
+                if not keep:
+                    logger.debug(
+                        f"Skipping {script.name} as it is not in a valid folder"
+                    )
+                    continue
 
-        #         scripts.append(
-        #             {
-        #                 "query": query,
-        #                 "name": script.name.split(".")[0],
-        #                 "folder": folder,
-        #             }
-        #         )
+                scripts.append(
+                    {
+                        "query": query,
+                        "name": script.name.split(".")[0],
+                        "folder": folder,
+                        "database": database,
+                    }
+                )
 
-        # if not scripts:
-        #     self.raise_error(ValueError("No valid scripts found in `%s`" % target_dir))
+        if not scripts:
+            logger.error(ValueError("No valid scripts found in `%s`" % target_dir))
 
-        # migrations = []
-        # etl_objects = []
-        # for script in scripts:
-        #     if script["folder"] == "migrations":
-        #         migrations.append(script)
-        #     if "etl_objects" in script["folder"]:
-        #         etl_objects.append(script)
+        migrations = []
+        etl_objects = []
+        initial_setup = None
+        for script in scripts:
+            if script["folder"] == "migrations":
+                migrations.append(script)
+            if "etl_objects" in script["folder"]:
+                if script["name"] == SYNAPSE_ANALYTICS_DB_SETUP_SCRIPT_NAME:
+                    initial_setup = script
+                else:
+                    etl_objects.append(script)
 
-        # print(migrations)
-        # print(etl_objects)
+
+        Migration(
+            db_con=db_con,
+            initial_setup=initial_setup,
+            migrations=migrations,
+            etl_objects=etl_objects,
+        ).deploy()
 
 
 class SynapsePrettifyCommand(AzureBaseCommand):

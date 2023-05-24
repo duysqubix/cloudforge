@@ -17,6 +17,7 @@ pyhaikunator = "^0.0.4"
 pygments = "^2.14.0"
 pyjson5 = "^1.6.2"
 faker = "^17.6.0"
+pyodbc = "^4.0.39"
 
 
 [tool.poetry.dev-dependencies]

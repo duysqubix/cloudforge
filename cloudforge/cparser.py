@@ -121,7 +121,16 @@ def prettify(name, format, type):
 @click.option("-p", "--password", required=True, help="Password to access database")
 @click.option("-e", "--env", required=True, help="Targeted environment")
 @click.option("-c", "--config", required=False, help="Path to config file")
-def deploySQL(target_dir, database_uri, username, password, env, config):
+@click.option(
+    "--db-option",
+    required=False,
+    multiple=True,
+    type=str,
+    help="Additional DB options",
+    callback=lambda ctx, param, value: dict([v.split("=") for v in value]),
+    default={},
+)
+def deploySQL(target_dir, database_uri, username, password, env, config, db_option):
     """Deploy SQL scripts to dedicated SQL pool"""
     SynapseSQLDeployCommand(
         target_dir=target_dir,
@@ -130,6 +139,7 @@ def deploySQL(target_dir, database_uri, username, password, env, config):
         password=password,
         env=env,
         config=config,
+        db_options=db_option,
     ).execute()
 
 
