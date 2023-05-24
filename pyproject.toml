@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "cloudforge"
-version = "0.8.0-dev"
+version = "0.8.1-dev"
 description = ""
 authors = ["duysqubix <duys@qubixadscom>"]
 
