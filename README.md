@@ -21,8 +21,7 @@ To manage cloudtf files you need to supply a env file
 
 ```bash
 docker run --rm -e ARM_VARS_USE_EXISTING=1 --env-file .env.dev -v $PWD:/cli/.tftest qubixds/cloudforge:dev -v tf validate dev -d .tftest/
-```
-
+``
 <hr>
 
 ## Working with Synapse 
@@ -47,8 +46,6 @@ Options:
                            workspace://database format  [required]
   -u, --username TEXT      Username to access database  [required]
   -p, --password TEXT      Password to access database  [required]
-  -e, --env TEXT           Targeted environment  [required]
-  -c, --config TEXT        Path to config file
   --db-option TEXT         Additional DB options
   --help                   Show this message and exit.
 ```
@@ -60,8 +57,6 @@ LOG_LEVEL=info cf az syn deploysql \
     -d main-synapse-workspace-dev://maindb \ 
     -u my-sql-username \
     -p my-strong-password \
-    -e dev \
-    -c .env.dev \
     --db-option TrustServerCertificate=no \ 
     --db-option Encrypt=no
 ```
@@ -115,7 +110,7 @@ The final two files would have the following content:
 ```sql
 SET ANSI_NULLS ON
 GO
-
+q
 SET QUOTED_IDENTIFIER ON
 GO
 

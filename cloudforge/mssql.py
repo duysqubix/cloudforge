@@ -199,7 +199,7 @@ class Migration:
 
         self.initial_setup = initial_setup
 
-    def deploy(self):
+    def deploy(self, interactive=True):
         logger.debug(
             "************************* Initial Script Execution *************************"
         )

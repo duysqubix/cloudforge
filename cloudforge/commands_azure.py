@@ -150,9 +150,9 @@ class SynapseConvertCommand(AzureBaseCommand):
 class SynapseSQLDeployCommand(AzureBaseCommand):
     def setup(self) -> None:
         self.target_dir = Path(self.target_dir)
-        self.tokens = self.key_vault_secrets
-        self.tokenizer: Tokenizer = Tokenizer(self.target_dir, "json")
-        self.tokenizer.read_root()
+        # self.tokens = self.key_vault_secrets
+        # self.tokenizer: Tokenizer = Tokenizer(self.target_dir, "json")
+        # self.tokenizer.read_root()
 
     """Deploy SQL Scripts"""
 
@@ -164,8 +164,7 @@ class SynapseSQLDeployCommand(AzureBaseCommand):
 
         if not target_dir.is_dir():
             logger.error("Target directory is not a valid directory")
-        
-        
+
         db_con = SynapseAnalyticsConnection(
             database_uri=self.database_uri,
             username=username,
@@ -225,13 +224,12 @@ class SynapseSQLDeployCommand(AzureBaseCommand):
                 else:
                     etl_objects.append(script)
 
-
         Migration(
             db_con=db_con,
             initial_setup=initial_setup,
             migrations=migrations,
             etl_objects=etl_objects,
-        ).deploy()
+        ).deploy(interactive=self.interactive)
 
 
 class SynapsePrettifyCommand(AzureBaseCommand):

@@ -119,8 +119,9 @@ def prettify(name, format, type):
 )
 @click.option("-u", "--username", required=True, help="Username to access database")
 @click.option("-p", "--password", required=True, help="Password to access database")
-@click.option("-e", "--env", required=True, help="Targeted environment")
-@click.option("-c", "--config", required=False, help="Path to config file")
+@click.option("-i", "--interactive", is_flag=True, help="Interactive mode", required=False)
+# @click.option("-e", "--env", required=True, help="Targeted environment")
+# @click.option("-c", "--config", required=False, help="Path to config file")
 @click.option(
     "--db-option",
     required=False,
@@ -130,16 +131,17 @@ def prettify(name, format, type):
     callback=lambda ctx, param, value: dict([v.split("=") for v in value]),
     default={},
 )
-def deploySQL(target_dir, database_uri, username, password, env, config, db_option):
+def deploySQL(target_dir, database_uri, username, password, db_option, interactive):
     """Deploy SQL scripts to dedicated SQL pool"""
     SynapseSQLDeployCommand(
         target_dir=target_dir,
         database_uri=database_uri,
         username=username,
         password=password,
-        env=env,
-        config=config,
+        # env=env,
+        # config=config,
         db_options=db_option,
+        interactive=interactive,
     ).execute()
 
 
