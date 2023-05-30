@@ -106,38 +106,47 @@ This tells Cloud Forge that `file1.sql` must be executed before `file2.sql`. You
 
 Cloud Forge watches for circular dependencies, non-existent dependencies, and more.
 
-The final two files would have the following content:
+Below are some examples of how to use the `DependsOn` syntax.
 
 `file1.sql`
 ```sql
-SET ANSI_NULLS ON
-GO
-q
-SET QUOTED_IDENTIFIER ON
-GO
+/* DependsOn: [] */
+CREATE TABLE users (
+    id INT PRIMARY KEY,
+    name VARCHAR(255),
+    email VARCHAR(255)
+);
 
-CREATE VIEW [dbo].[Test1] AS 
-SELECT 
-*
-FROM [dbo].[Employees]
-GO
 ```
 
 `file2.sql`
 ```sql
-SET ANSI_NULLS ON
-GO
+/* DependsOn: [file1.sql] */
+ALTER TABLE users
+ADD created_at DATETIME;
 
-SET QUOTED_IDENTIFIER ON
-GO
+```
 
-\* DependsOn: [file1.sql] *\
+`file3.sql`
+```sql
+/* DependsOn: [file1.sql] */
+CREATE TABLE posts (
+    id INT PRIMARY KEY,
+    user_id INT,
+    title VARCHAR(255),
+    content TEXT,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+```
 
-CREATE VIEW [dbo].[Test2] AS 
-SELECT TOP 10
-*
-FROM [dbo].[Test1]
-ORDER BY [RevenueGenerated] DESC
-GO
+`file4.sql`
+```sql
+/* DependsOn: [file2.sql, file3.sql] */
+ALTER TABLE users
+ADD updated_at DATETIME;
+
+ALTER TABLE posts
+ADD updated_at DATETIME;
+
 ```
 
