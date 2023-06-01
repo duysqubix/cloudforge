@@ -1,11 +1,16 @@
 from datetime import datetime
 from collections import deque
-
+from pygments.formatters import find_formatter_class
+from pygments.lexers import find_lexer_class_by_name
 
 import pyodbc
 import re
+import sys
+import pygments
+
 
 from . import logger, MSSQL_MIGRATION_CONTROL_TABLE_NAME, DEFAULT_ODBC_MSSQL_DRIVER
+from .utils import is_interactive
 
 
 class ODBCValue:
@@ -147,7 +152,7 @@ class DBObject:
 class DBObjectResolver:
     def __init__(self, db_objects_dict):
         self.db_objects = {
-            filename: DBObject(filename, content)
+            filename: DBObject(filename, content["query"])
             for filename, content in db_objects_dict.items()
         }
         self.execution_order = self._resolve_dependencies()
@@ -199,7 +204,16 @@ class Migration:
 
         self.initial_setup = initial_setup
 
+        self.interactive = False
+
     def deploy(self, interactive=True):
+        self.interactive = interactive
+        if self.interactive:
+            if not is_interactive():
+                logger.error(
+                    "Interactive mode enabled, but executor is not interactive"
+                )
+
         logger.debug(
             "************************* Initial Script Execution *************************"
         )
@@ -213,6 +227,7 @@ class Migration:
         logger.debug(
             "************************* ETL Objects **************************************"
         )
+
         self._execute_etl_objects()
 
     def migration_exist(self, name):
@@ -237,10 +252,27 @@ class Migration:
         )
         return results
 
-    def _execute_initial_setup(self):
-        self.db_con.execute_script(
-            self.initial_setup["query"],
+    def _execute_script(self, script_obj):
+        script = script_obj["query"]
+        if self.interactive:
+            colored_script = pygments.highlight(
+                script,
+                lexer=find_lexer_class_by_name("sql")(),
+                formatter=find_formatter_class("terminal256")(),
+            )
+            print(f"Executing script [{script_obj['name']}]: \n{colored_script}")
+            if input("Execute Script? (y/n): ").lower() != "y":
+                logger.critical("Aborting....")
+                return
+
+        results = self.db_con.execute_script(
+            script,
         )
+        print("*" * 100)
+        return results
+
+    def _execute_initial_setup(self):
+        self._execute_script(self.initial_setup)
 
     def _execute_migrations(self):
         for migration in self.migrations:
@@ -251,9 +283,7 @@ class Migration:
 
                 try:
                     logger.info(f"Executing migration: {name}")
-                    self.db_con.execute_script(
-                        migration["query"],
-                    )
+                    self._execute_script(migration)
                     self.add_migration(name)
                 except Exception as e:
                     logger.error(f"Failed to execute migration: {name}. Reason: `{e}`")
@@ -263,7 +293,10 @@ class Migration:
 
     def _execute_etl_objects(self):
         # print(self.etl_objects)
-        db_objects_dict = {v["name"]: v["query"] for v in self.etl_objects}
+        db_objects_dict = {
+            v["name"]: {"query": v["query"], "name": v["name"]}
+            for v in self.etl_objects
+        }
 
         resolver = DBObjectResolver(db_objects_dict)
 
@@ -272,7 +305,7 @@ class Migration:
             try:
                 query = db_objects_dict[etl_object]
                 logger.info(f"Refreshing ETL Object: {etl_object}")
-                self.db_con.execute_script(query)
+                self._execute_script(query)
             except Exception as e:
                 logger.error(
                     f"Failed to execute migration: {etl_object}. Reason: `{e}`"

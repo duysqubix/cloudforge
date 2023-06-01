@@ -1,10 +1,9 @@
 import os
+import sys
 import pytest
 
 from tempfile import NamedTemporaryFile
-from unittest.mock import MagicMock
-
-from .utils import EnvConfiguration
+from .utils import EnvConfiguration, is_interactive
 
 
 def test_read_and_parse_no_file(monkeypatch):
@@ -102,3 +101,28 @@ def test_load_env_with_dir_missing_env(mock_config_file):
     config_dir.mkdir()
     with pytest.raises(ValueError):
         EnvConfiguration.load_env(target_dir_or_file=config_dir, env=None)
+
+
+def test_is_interactive(monkeypatch):
+    """
+    Test the is_interactive function to check if it detects interactivity correctly.
+    """
+    # Test when both stdin and stdout are ttys
+    monkeypatch.setattr(sys.stdin, "isatty", lambda: True)
+    monkeypatch.setattr(sys.stdout, "isatty", lambda: True)
+    assert is_interactive() == True
+
+    # Test when stdin is not a tty but stdout is
+    monkeypatch.setattr(sys.stdin, "isatty", lambda: False)
+    monkeypatch.setattr(sys.stdout, "isatty", lambda: True)
+    assert is_interactive() == False
+
+    # Test when stdin is a tty but stdout is not
+    monkeypatch.setattr(sys.stdin, "isatty", lambda: True)
+    monkeypatch.setattr(sys.stdout, "isatty", lambda: False)
+    assert is_interactive() == False
+
+    # Test when both stdin and stdout are not ttys
+    monkeypatch.setattr(sys.stdin, "isatty", lambda: False)
+    monkeypatch.setattr(sys.stdout, "isatty", lambda: False)
+    assert is_interactive() == False

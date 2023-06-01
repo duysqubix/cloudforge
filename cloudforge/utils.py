@@ -16,6 +16,7 @@ from pathlib import Path
 from copy import deepcopy
 
 import os
+import sys
 
 
 class EnvConfiguration:
@@ -166,3 +167,13 @@ class EnvConfiguration:
 
         config.read_and_parse()
         return config
+    
+
+def is_interactive():
+    """
+    Checks if the entity executing the script is interactive or not.
+    
+    Returns:
+        bool: True if interactive, False otherwise.
+    """
+    return sys.stdin.isatty() and sys.stdout.isatty()
