@@ -174,9 +174,13 @@ def test_db_object_no_dependencies():
 
 def test_db_object_resolver():
     db_objects_dict = {
-        "file1.sql": "SELECT * FROM users; /* DependsOn: [file2.sql, file3.sql] */",
-        "file2.sql": "CREATE TABLE users (id INT); /* DependsOn: [] */",
-        "file3.sql": "ALTER TABLE users ADD name VARCHAR(255); /* DependsOn: [file2.sql] */",
+        "file1.sql": {
+            "query": "SELECT * FROM users; /* DependsOn: [file2.sql, file3.sql] */"
+        },
+        "file2.sql": {"query": "CREATE TABLE users (id INT); /* DependsOn: [] */"},
+        "file3.sql": {
+            "query": "ALTER TABLE users ADD name VARCHAR(255); /* DependsOn: [file2.sql] */"
+        },
     }
 
     resolver = DBObjectResolver(db_objects_dict)
@@ -194,9 +198,13 @@ def test_db_object_resolver():
 
 def test_db_object_resolver_2():
     db_objects_dict = {
-        "file1.sql": "SELECT * FROM users; /* DependsOn: [file2.sql, file3.sql] */",
-        "file2.sql": "CREATE TABLE users (id INT); /* DependsOn: [] */",
-        "file3.sql": "ALTER TABLE users ADD name VARCHAR(255); /* DependsOn: [file2.sql] */",
+        "file1.sql": {
+            "query": "SELECT * FROM users; /* DependsOn: [file2.sql, file3.sql] */"
+        },
+        "file2.sql": {"query": "CREATE TABLE users (id INT); /* DependsOn: [] */"},
+        "file3.sql": {
+            "query": "ALTER TABLE users ADD name VARCHAR(255); /* DependsOn: [file2.sql] */"
+        },
     }
 
     resolver = DBObjectResolver(db_objects_dict)
@@ -206,8 +214,10 @@ def test_db_object_resolver_2():
 
 def test_db_object_resolver_circular_dependency():
     db_objects_dict = {
-        "file1.sql": "SELECT * FROM users; /* DependsOn: [file2.sql] */",
-        "file2.sql": "CREATE TABLE users (id INT); /* DependsOn: [file1.sql] */",
+        "file1.sql": {"query": "SELECT * FROM users; /* DependsOn: [file2.sql] */"},
+        "file2.sql": {
+            "query": "CREATE TABLE users (id INT); /* DependsOn: [file1.sql] */"
+        },
     }
 
     with pytest.raises(ValueError, match="Circular dependency detected"):
@@ -217,8 +227,10 @@ def test_db_object_resolver_circular_dependency():
 
 def test_db_object_resolver_non_existent_dependency():
     db_objects_dict = {
-        "file1.sql": "SELECT * FROM users; /* DependsOn: [file2.sql] */",
-        "file2.sql": "CREATE TABLE users (id INT); /* DependsOn: [file3.sql] */",
+        "file1.sql": {"query": "SELECT * FROM users; /* DependsOn: [file2.sql] */"},
+        "file2.sql": {
+            "query": "CREATE TABLE users (id INT); /* DependsOn: [file3.sql] */"
+        },
     }
 
     with pytest.raises(ValueError, match="Dependency file3.sql not found"):
@@ -228,13 +240,25 @@ def test_db_object_resolver_non_existent_dependency():
 
 def test_db_object_resolver_multiple_dependencies():
     db_objects_dict = {
-        "file1.sql": "SELECT * FROM users; /* DependsOn: [file2.sql, file3.sql] */",
-        "file2.sql": "CREATE TABLE users (id INT); /* DependsOn: [file5.sql] */",
-        "file3.sql": "ALTER TABLE users ADD name VARCHAR(255); /* DependsOn: [file2.sql, file4.sql, file6.sql] */",
-        "file4.sql": "SELECT * FROM orders; /* DependsOn: [file5.sql, file7.sql] */",
-        "file5.sql": "CREATE TABLE orders (id INT); /* DependsOn: [] */",
-        "file6.sql": "CREATE INDEX idx_users_id ON users(id); /* DependsOn: [file5.sql] */",
-        "file7.sql": "ALTER TABLE orders ADD user_id INT; /* DependsOn: [] */",
+        "file1.sql": {
+            "query": "SELECT * FROM users; /* DependsOn: [file2.sql, file3.sql] */"
+        },
+        "file2.sql": {
+            "query": "CREATE TABLE users (id INT); /* DependsOn: [file5.sql] */"
+        },
+        "file3.sql": {
+            "query": "ALTER TABLE users ADD name VARCHAR(255); /* DependsOn: [file2.sql, file4.sql, file6.sql] */"
+        },
+        "file4.sql": {
+            "query": "SELECT * FROM orders; /* DependsOn: [file5.sql, file7.sql] */"
+        },
+        "file5.sql": {"query": "CREATE TABLE orders (id INT); /* DependsOn: [] */"},
+        "file6.sql": {
+            "query": "CREATE INDEX idx_users_id ON users(id); /* DependsOn: [file5.sql] */"
+        },
+        "file7.sql": {
+            "query": "ALTER TABLE orders ADD user_id INT; /* DependsOn: [] */"
+        },
     }
 
     resolver = DBObjectResolver(db_objects_dict)
@@ -313,9 +337,13 @@ DependsOn: [file3.sql]
 
 def test_db_object_resolver_nested_dependencies():
     db_objects_dict = {
-        "file1.sql": "CREATE TABLE users (id INT); /* DependsOn: [] */",
-        "file2.sql": "ALTER TABLE users ADD name VARCHAR(255); /* DependsOn: [file1.sql] */",
-        "file3.sql": "SELECT * FROM users; /* DependsOn: [file1.sql, file2.sql] */",
+        "file1.sql": {"query": "CREATE TABLE users (id INT); /* DependsOn: [] */"},
+        "file2.sql": {
+            "query": "ALTER TABLE users ADD name VARCHAR(255); /* DependsOn: [file1.sql] */"
+        },
+        "file3.sql": {
+            "query": "SELECT * FROM users; /* DependsOn: [file1.sql, file2.sql] */"
+        },
     }
 
     resolver = DBObjectResolver(db_objects_dict)
@@ -334,15 +362,16 @@ def test_db_object_resolver_nested_dependencies():
     assert orders["file1.sql"] < orders["file2.sql"]
     assert orders["file1.sql"] < orders["file3.sql"]
     assert orders["file2.sql"] < orders["file3.sql"]
-    
+
+
 def test_db_object_resolver_nested_multiple_dependencies():
     db_objects_dict = {
-        "file1.sql": "/* DependsOn: [] */",
-        "file2.sql": "/* DependsOn: [] */",
-        "file3.sql": "/* DependsOn: [file1.sql, file2.sql] */",
-        "file4.sql": "/* DependsOn: [file1.sql, file2.sql] */",
-        "file5.sql": "/* DependsOn: [file4.sql] */",
-        "file6.sql": "/* DependsOn: [file3.sql, file5.sql] */",
+        "file1.sql": {"query": "/* DependsOn: [] */"},
+        "file2.sql": {"query": "/* DependsOn: [] */"},
+        "file3.sql": {"query": "/* DependsOn: [file1.sql, file2.sql] */"},
+        "file4.sql": {"query": "/* DependsOn: [file1.sql, file2.sql] */"},
+        "file5.sql": {"query": "/* DependsOn: [file4.sql] */"},
+        "file6.sql": {"query": "/* DependsOn: [file3.sql, file5.sql] */"},
     }
 
     resolver = DBObjectResolver(db_objects_dict)
@@ -369,17 +398,17 @@ def test_db_object_resolver_nested_multiple_dependencies():
     assert orders["file3.sql"] < orders["file6.sql"]
     assert orders["file5.sql"] < orders["file6.sql"]
 
+
 def test_db_object_resolver_circular_dependency_multiple_nested():
     db_objects_dict = {
-        "file1.sql": "/* DependsOn: [] */",
-        "file2.sql": "/* DependsOn: [file5.sql] */",
-        "file3.sql": "/* DependsOn: [file1.sql, file2.sql] */",
-        "file4.sql": "/* DependsOn: [file1.sql, file2.sql] */",
-        "file5.sql": "/* DependsOn: [file4.sql] */",
-        "file6.sql": "/* DependsOn: [file3.sql, file5.sql] */",
+        "file1.sql": {"query": "/* DependsOn: [] */"},
+        "file2.sql": {"query": "/* DependsOn: [file5.sql] */"},
+        "file3.sql": {"query": "/* DependsOn: [file1.sql, file2.sql] */"},
+        "file4.sql": {"query": "/* DependsOn: [file1.sql, file2.sql] */"},
+        "file5.sql": {"query": "/* DependsOn: [file4.sql] */"},
+        "file6.sql": {"query": "/* DependsOn: [file3.sql, file5.sql] */"},
     }
 
     with pytest.raises(ValueError, match="Circular dependency detected"):
         resolver = DBObjectResolver(db_objects_dict)
         resolver.get_execution_order()
-

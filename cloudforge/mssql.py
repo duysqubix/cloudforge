@@ -10,7 +10,7 @@ import pygments
 
 
 from . import logger, MSSQL_MIGRATION_CONTROL_TABLE_NAME, DEFAULT_ODBC_MSSQL_DRIVER
-from .utils import is_interactive
+from .utils import is_interactive, terminal_supports_color
 
 
 class ODBCValue:
@@ -255,11 +255,14 @@ class Migration:
     def _execute_script(self, script_obj):
         script = script_obj["query"]
         if self.interactive:
-            colored_script = pygments.highlight(
-                script,
-                lexer=find_lexer_class_by_name("sql")(),
-                formatter=find_formatter_class("terminal256")(),
-            )
+            colored_script = script
+
+            if terminal_supports_color():
+                colored_script = pygments.highlight(
+                    script,
+                    lexer=find_lexer_class_by_name("sql")(),
+                    formatter=find_formatter_class("terminal256")(),
+                )
             print(f"Executing script [{script_obj['name']}]: \n{colored_script}")
             if input("Execute Script? (y/n): ").lower() != "y":
                 logger.critical("Aborting....")

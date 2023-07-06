@@ -17,6 +17,7 @@ from copy import deepcopy
 
 import os
 import sys
+import curses
 
 
 class EnvConfiguration:
@@ -167,13 +168,27 @@ class EnvConfiguration:
 
         config.read_and_parse()
         return config
-    
+
 
 def is_interactive():
     """
     Checks if the entity executing the script is interactive or not.
-    
+
     Returns:
         bool: True if interactive, False otherwise.
     """
     return sys.stdin.isatty() and sys.stdout.isatty()
+
+
+def terminal_supports_color():
+    """
+    Checks if the terminal supports color.
+
+    Returns:
+        bool: True if the terminal supports color, False otherwise.
+    """
+    try:
+        curses.setupterm()
+        return curses.tigetnum("colors") > 0
+    except Exception:
+        return False
