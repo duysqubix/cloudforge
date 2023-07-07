@@ -7,7 +7,7 @@ import tempfile
 import os
 
 __packagename__ = "cloudforge"
-__version__ = "0.8.1-dev"
+__version__ = "0.8.2-dev"
 
 VALID_ENVS = ["dev", "stg", "uat", "prod"]
 
