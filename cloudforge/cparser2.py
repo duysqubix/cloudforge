@@ -65,7 +65,6 @@ def terraform_main(
         ),
     ] = Path.cwd(),
 ):
-    # TODO: Add support for other Terraform modules
     TerraformCommands(action=action, env=env, proj_dir=proj_dir).execute()
 
 
