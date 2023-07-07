@@ -120,8 +120,6 @@ def prettify(name, format, type):
 @click.option("-u", "--username", required=True, help="Username to access database")
 @click.option("-p", "--password", required=True, help="Password to access database")
 @click.option("-i", "--interactive", is_flag=True, help="Interactive mode", required=False)
-# @click.option("-e", "--env", required=True, help="Targeted environment")
-# @click.option("-c", "--config", required=False, help="Path to config file")
 @click.option(
     "--db-option",
     required=False,

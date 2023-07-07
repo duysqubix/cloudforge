@@ -1,5 +1,6 @@
 from pathlib import Path
 from datetime import datetime
+from enum import Enum
 import logging
 import sys
 import tempfile
@@ -10,6 +11,12 @@ __version__ = "0.8.1-dev"
 
 VALID_ENVS = ["dev", "stg", "uat", "prod"]
 
+class ValidEnvs(str, Enum):
+    dev  = "dev"
+    stg  = "stg"
+    uat  = "uat"
+    prod = "prod"
+
 TMP_DIR = Path(tempfile.gettempdir())
 TFPY_DIR_BASE_NAME = ".terraform-py"
 TMP_PATH = TMP_DIR / TFPY_DIR_BASE_NAME
@@ -18,6 +25,7 @@ SYNAPSE_ANALYTICS_DB_SETUP_SCRIPT_NAME = "dbo_initial_setup"
 DEFAULT_MIGRATION_CONTROL_TABLE_NAME = "MigrationControl"
 MSSQL_MIGRATION_CONTROL_TABLE_NAME = f"[dbo].[{DEFAULT_MIGRATION_CONTROL_TABLE_NAME}]"
 DEFAULT_ODBC_MSSQL_DRIVER = "ODBC Driver 17 for SQL Server"
+
 
 class UnsupportedDevEnvironment(Exception):
     pass
@@ -58,8 +66,11 @@ class ECLogger:
         self.handlers["console_handler"] = console_handler
         self.logger.addHandler(self.handlers["console_handler"])
 
-    def set_level_from_env(self):
-        level = os.getenv("LOG_LEVEL")
+    def set_level(self, level):
+        self.set_level_from_env(level)
+
+    def set_level_from_env(self, level=None):
+        level = os.getenv("LOG_LEVEL") if not level else level
 
         if level:
             if level.lower() == "warning":
@@ -73,9 +84,9 @@ class ECLogger:
             elif level.lower() == "critical":
                 _level = logging.CRITICAL
 
-            self.setLevel(_level)
+            self._set_level(_level)
 
-    def setLevel(self, level):
+    def _set_level(self, level):
         self.logger.setLevel(level)
 
     def enable_debug(self):

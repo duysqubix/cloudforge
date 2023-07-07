@@ -18,7 +18,7 @@ class BaseCommand:
 
     def execute(self) -> None:
         pass
-    
+
 
 class VersionCommands(BaseCommand):
     """Class for handling version commands."""
@@ -37,7 +37,6 @@ class CleanCommands(BaseCommand):
 
     def execute(self) -> None:
         """Executes the clean command."""
-        print("HELLO", self.module)
         if self.module == "all":
             logger.debug("Cleaning all")
             self._clean_up_cftf_files()

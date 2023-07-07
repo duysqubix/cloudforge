@@ -272,7 +272,7 @@ class SynapsePrettifyCommand(AzureBaseCommand):
                 + f"name: {name}"
             )
         )
-        if type_ == "sqlscript":
+        if "sql" in type_.lower():
             query = jdata["properties"]["content"]["query"]
             prettied_query = pygments.highlight(
                 query,

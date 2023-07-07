@@ -201,6 +201,7 @@ class Migration:
 
         # sort migrations by name
         self.migrations.sort(key=lambda x: x["name"])
+        logger.debug(self.migrations)
 
         self.initial_setup = initial_setup
 
@@ -214,17 +215,17 @@ class Migration:
                     "Interactive mode enabled, but executor is not interactive"
                 )
 
-        logger.debug(
+        logger.info(
             "************************* Initial Script Execution *************************"
         )
         self._execute_initial_setup()
 
-        logger.debug(
+        logger.info(
             "************************* Migrations ***************************************"
         )
         self._execute_migrations()
 
-        logger.debug(
+        logger.info(
             "************************* ETL Objects **************************************"
         )
 
@@ -271,7 +272,9 @@ class Migration:
         results = self.db_con.execute_script(
             script,
         )
-        print("*" * 100)
+
+        if self.interactive:
+            print("*" * 100)
         return results
 
     def _execute_initial_setup(self):
